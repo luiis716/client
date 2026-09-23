@@ -43,8 +43,17 @@ impl ChatKind {
     pub fn label(self) -> Option<&'static str> {
         match self {
             Self::Direct => None,
-            Self::Group => Some("Group"),
-            Self::Channel => Some("Channel"),
+            Self::Group => Some("Grupo"),
+            Self::Channel => Some("Canal"),
+        }
+    }
+
+    /// Which rail destination owns this kind of conversation.
+    pub fn destination(self) -> crate::app::Destination {
+        match self {
+            Self::Direct => crate::app::Destination::Chats,
+            Self::Group => crate::app::Destination::Groups,
+            Self::Channel => crate::app::Destination::Channels,
         }
     }
 }
@@ -73,11 +82,11 @@ impl PreviewGlyph {
 
     pub(crate) fn label(self) -> &'static str {
         match self {
-            Self::Image => "Photo",
-            Self::Video => "Video",
-            Self::Audio => "Voice message",
-            Self::Document => "Document",
-            Self::Sticker => "Sticker",
+            Self::Image => "Foto",
+            Self::Video => "Vídeo",
+            Self::Audio => "Áudio",
+            Self::Document => "Documento",
+            Self::Sticker => "Figurinha",
         }
     }
 }
@@ -228,7 +237,7 @@ fn prefix_for(chat: &Chat, last: &ChatMessage) -> Option<String> {
     if last.is_from_me {
         // The tick already says it is ours in a 1:1 chat; in a group the name
         // column is the group's, so the sender still needs saying.
-        return chat.is_group.then(|| "You".to_string());
+        return chat.is_group.then(|| "Você".to_string());
     }
     if !chat.is_group {
         return None;
@@ -281,7 +290,7 @@ fn body_for(last: &ChatMessage) -> String {
 pub fn display_name(name: &str, is_own_number: bool) -> String {
     let name = crate::utils::capped_name(&single_line(name));
     if is_own_number {
-        format!("{name} (You)")
+        format!("{name} (Você)")
     } else {
         name
     }
@@ -348,7 +357,7 @@ mod tests {
         chat.name = "Jlucaso 2".to_string();
         assert_eq!(
             ChatRow::new(&chat, None, None, true).name,
-            "Jlucaso 2 (You)"
+            "Jlucaso 2 (Você)"
         );
         assert_eq!(ChatRow::new(&chat, None, None, false).name, "Jlucaso 2");
     }

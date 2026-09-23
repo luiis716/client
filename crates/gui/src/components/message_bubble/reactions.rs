@@ -146,14 +146,14 @@ pub fn render_hover_actions(
             // rather than as a popup the virtual list cannot anchor. The
             // same emojis are on the message's context menu, which is the
             // route keyboard users take.
-            action(ids.react.clone(), ProductIcon::Smile.into(), "React").on_click(
-                move |_, _window, cx| {
+            action(ids.react.clone(), ProductIcon::Smile.into(), crate::l10n::tr("React"))
+                .cursor_pointer()
+                .on_click(move |_, _window, cx| {
                     picker_entity.update(cx, |app, cx| app.toggle_reaction_picker(&picker_id, cx));
-                },
-            ),
+                }),
         )
         .child(
-            action(ids.reply.clone(), ProductIcon::Reply.into(), "Reply")
+            action(ids.reply.clone(), ProductIcon::Reply.into(), crate::l10n::tr("Reply"))
                 .cursor_pointer()
                 .on_click(move |_, window, cx| {
                     reply_entity.update(cx, |app, cx| app.begin_reply(&reply_id, window, cx));

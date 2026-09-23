@@ -1,12 +1,12 @@
 //! The window's destinations.
 //!
-//! Two of them today, Chats and Status, and the rail exists because Status is
-//! not a conversation: it has no other party and nothing is sent to it, so
-//! putting it in the list of people to talk to made it read as one.
+//! Conversas, Grupos, Canais and Status share one rail: Status is not a
+//! conversation, Canais are newsletters (`@newsletter`), and Grupos keeps
+//! ordinary groups together with communities (also `@g.us`).
 //!
 //! One list of destinations, drawn along whichever axis there is room for: a
 //! strip down the side of a window, a bar across the foot of a phone. The
-//! alternative — two functions — is two places to add the third destination.
+//! alternative — two functions — is two places to add the next destination.
 
 use gpui::prelude::*;
 use gpui::{App, Entity, IntoElement, ParentElement, Styled, div};
@@ -22,6 +22,8 @@ use crate::theme::Metrics;
 pub fn render_nav_rail(
     current: Destination,
     unread_chats: usize,
+    unread_groups: usize,
+    unread_channels: usize,
     unseen_status: usize,
     entity: Entity<WhatsAppApp>,
     layout: ResponsiveLayout,
@@ -57,7 +59,7 @@ pub fn render_nav_rail(
             .border_t_1()
     } else {
         // A strip beside a list starts where the list starts. Centred down the
-        // window, two icons float in the middle of nothing and line up with
+        // window, icons float in the middle of nothing and line up with
         // no part of what they switch between.
         base.h_full()
             .w(thickness)
@@ -70,6 +72,8 @@ pub fn render_nav_rail(
     base.children(Destination::ALL.into_iter().map(|destination| {
         let badge = match destination {
             Destination::Chats => unread_chats,
+            Destination::Groups => unread_groups,
+            Destination::Channels => unread_channels,
             Destination::Status => unseen_status,
         };
         render_destination(
@@ -101,6 +105,8 @@ fn render_destination(
 ) -> impl IntoElement + use<> {
     let icon: Icon = match destination {
         Destination::Chats => crate::components::ProductIcon::MessageSquare.into(),
+        Destination::Groups => crate::components::ProductIcon::Users.into(),
+        Destination::Channels => crate::components::ProductIcon::Volume.into(),
         Destination::Status => crate::components::ProductIcon::CircleDashed.into(),
     };
 

@@ -33,7 +33,7 @@ mod viewer;
 pub use calls::CallCard;
 #[cfg(all(test, unix))]
 pub(crate) use calls_ctl::exercise_call_frame_adoption;
-pub use chat_row::{ChatRow, Preview, PreviewGlyph, Unread};
+pub use chat_row::{ChatKind, ChatRow, Preview, PreviewGlyph, Unread};
 pub use chats::{
     ChatFilter, ChatListCache, Survival, survives_archived_scan, survives_complete_load,
 };
@@ -1501,7 +1501,9 @@ impl WhatsAppApp {
     /// destination the window is on.
     fn has_something_to_show(&self) -> bool {
         match self.destination {
-            Destination::Chats => self.selected_chat.is_some(),
+            Destination::Chats | Destination::Groups | Destination::Channels => {
+                self.selected_chat.is_some()
+            }
             Destination::Status => self.status_pane.is_open(),
         }
     }
@@ -1555,7 +1557,8 @@ impl WhatsAppApp {
 
         let query = self.search.read(cx).list_query();
         let matches = |chat: &Chat| {
-            self.chat_filter.matches(chat)
+            self.destination_owns(chat)
+                && self.chat_filter.matches(chat)
                 && (contains_ignore_case(&chat.name, query)
                     || contains_ignore_case(&chat.jid, query))
         };
@@ -1592,12 +1595,45 @@ impl WhatsAppApp {
 
     /// How many conversations carry unread state, for the filter chip.
     ///
-    /// Counted over every chat rather than the filtered view: the number has
-    /// to say what pressing `Unread` would reveal.
+    /// Scoped to the current destination: Conversas counts contacts, Grupos
+    /// counts groups. Counted over that scope rather than the filtered view:
+    /// the number has to say what pressing `Não lidas` would reveal.
     pub fn unread_chat_count(&self) -> usize {
         self.conversations()
-            .filter(|chat| ChatFilter::Unread.matches(chat))
+            .filter(|chat| self.destination_owns(chat) && ChatFilter::Unread.matches(chat))
             .count()
+    }
+
+    /// Unread contacts, for the Conversas rail badge.
+    pub fn unread_direct_count(&self) -> usize {
+        self.conversations()
+            .filter(|chat| {
+                matches!(ChatKind::of(chat), ChatKind::Direct) && ChatFilter::Unread.matches(chat)
+            })
+            .count()
+    }
+
+    /// Unread groups (and communities), for the Grupos rail badge.
+    pub fn unread_group_count(&self) -> usize {
+        self.conversations()
+            .filter(|chat| {
+                matches!(ChatKind::of(chat), ChatKind::Group) && ChatFilter::Unread.matches(chat)
+            })
+            .count()
+    }
+
+    /// Unread channels / newsletters, for the Canais rail badge.
+    pub fn unread_channel_count(&self) -> usize {
+        self.conversations()
+            .filter(|chat| {
+                matches!(ChatKind::of(chat), ChatKind::Channel) && ChatFilter::Unread.matches(chat)
+            })
+            .count()
+    }
+
+    /// Whether `chat` belongs under the current Conversas / Grupos / Canais destination.
+    fn destination_owns(&self, chat: &Chat) -> bool {
+        ChatKind::of(chat).destination() == self.destination
     }
 
     /// The chats that are conversations.
@@ -2495,7 +2531,7 @@ impl WhatsAppApp {
         if self.search.read(cx).list_input().is_some() {
             return;
         }
-        let input = cx.new(|cx| InputState::new(window, cx).placeholder("Search chats..."));
+        let input = cx.new(|cx| InputState::new(window, cx).placeholder("Buscar conversas..."));
         cx.subscribe(&input, |this, input, event: &InputEvent, cx| {
             if let InputEvent::Change = event {
                 let query = input.read(cx).value().to_string();
@@ -2647,6 +2683,16 @@ impl WhatsAppApp {
         self.selected_chat = Some(jid.clone());
         if let Some(chat) = self.find_chat(&jid).cloned() {
             self.demand_avatar_for_chat(&chat);
+            // Opening a group from Status (or anywhere else) lands on Grupos,
+            // not on Conversas with a row that is not in that list.
+            let dest = ChatKind::of(&chat).destination();
+            if self.destination != dest {
+                if self.destination == Destination::Status {
+                    self.leave_shown_status();
+                }
+                self.destination = dest;
+                self.invalidate_chat_cache();
+            }
         }
         self.navigate_to_chat();
 

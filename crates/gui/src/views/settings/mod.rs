@@ -13,26 +13,12 @@ use gpui::{
 };
 use gpui_component::ActiveTheme as _;
 use gpui_component::button::{Button, ButtonVariants as _};
-use gpui_component::link::Link;
 use gpui_component::{Icon, IconName, Selectable as _, Sizable as _};
 
 use crate::app::{SettingsSection, WhatsAppApp};
 use crate::components::ProductIcon;
 use crate::components::parts;
 use crate::theme::Metrics;
-
-/// Version strings for the sidebar footer.
-///
-/// The app's comes from Cargo at build time; the library's is the dependency
-/// this binary was actually compiled against, which is the number that matters
-/// when someone reports a protocol bug.
-const APP_VERSION: &str = env!("CARGO_PKG_VERSION");
-
-/// Where this client comes from, and the one place the address is written.
-///
-/// The footer draws the two lines below as links rather than as URLs, because
-/// a footer is three short lines and an address is longer than any of them.
-const REPOSITORY: &str = "https://github.com/oxidezap/client";
 
 pub fn render_settings_view(
     app: &mut WhatsAppApp,
@@ -124,7 +110,7 @@ fn render_nav(
                         .icon(IconName::ArrowLeft)
                         .ghost()
                         .small()
-                        .tooltip("Back to chats")
+                        .tooltip(crate::l10n::tr("Back to chats"))
                         .cursor_pointer()
                         .on_click(move |_, _window, cx| {
                             close_entity.update(cx, |app, cx| {
@@ -137,7 +123,7 @@ fn render_nav(
                         .text_size(metrics.text_title())
                         .font_weight(gpui::FontWeight::SEMIBOLD)
                         .text_color(cx.theme().foreground)
-                        .child("Settings"),
+                        .child("Configurações"),
                 ),
         )
         .child(
@@ -152,7 +138,6 @@ fn render_nav(
                     render_nav_item(item, item == section, entity.clone(), metrics, cx)
                 })),
         )
-        .child(render_versions(metrics, cx))
 }
 
 /// One destination in the side nav.
@@ -288,7 +273,7 @@ fn render_header(
                     .icon(IconName::ArrowLeft)
                     .ghost()
                     .small()
-                    .tooltip("Back to chats")
+                    .tooltip(crate::l10n::tr("Back to chats"))
                     .cursor_pointer()
                     .on_click(move |_, _window, cx| {
                         back_entity.update(cx, |app, cx| app.close_settings(cx));
@@ -318,7 +303,7 @@ fn render_header(
                 .icon(IconName::Close)
                 .ghost()
                 .small()
-                .tooltip("Close settings")
+                .tooltip(crate::l10n::tr("Close settings"))
                 .cursor_pointer()
                 .on_click(move |_, _window, cx| {
                     entity.update(cx, |app, cx| {
@@ -328,84 +313,22 @@ fn render_header(
         )
 }
 
-fn render_versions(metrics: Metrics, cx: &App) -> impl IntoElement + use<> {
-    let subtle = parts::subtle(cx);
-
-    div()
-        .flex_shrink_0()
-        .flex()
-        .flex_col()
-        .gap(metrics.space_xxs())
-        .px(metrics.space_xl())
-        .py(metrics.space_lg())
-        .border_t_1()
-        .border_color(cx.theme().border)
-        .font_family(cx.theme().mono_font_family.clone())
-        .text_size(metrics.text_micro())
-        .text_color(subtle)
-        // The version and the build it came from, on one line, because they
-        // answer one question. A nightly moves every push while the version
-        // does not, so the hash is what names *this* build — and it is a link
-        // to the commit, which is where somebody reading a bug report wants
-        // to end up.
-        .child(
-            div()
-                .flex()
-                .flex_row()
-                .items_center()
-                .gap(metrics.space_xs())
-                .child(format!("oxidezap {APP_VERSION}"))
-                .children(build_revision().map(|rev| {
-                    Link::new("settings-revision")
-                        .href(format!("{REPOSITORY}/commit/{rev}"))
-                        .text_size(metrics.text_micro())
-                        .child(format!("({rev})"))
-                })),
-        )
-        .child(format!("whatsapp-rust {}", library_version()))
-        .child(
-            Link::new("settings-repository")
-                .href(REPOSITORY)
-                .text_size(metrics.text_micro())
-                .child("github.com/oxidezap/client"),
-        )
-}
-
-/// The commit this binary was built from, if the build knew one.
-///
-/// `build.rs` sets it from the environment or from the checkout, and sets
-/// nothing where there is neither — a source archive unpacked with no `.git`
-/// around it. Absent rather than `unknown`, so the line simply does not
-/// appear.
-fn build_revision() -> Option<&'static str> {
-    option_env!("OXIDEZAP_REV").filter(|rev| !rev.is_empty())
-}
-
-/// The library revision this binary was built against.
-///
-/// A git dependency has no version to read at runtime, so this reports the
-/// branch the workspace pins rather than inventing a number that would go
-/// stale silently.
-fn library_version() -> &'static str {
-    option_env!("OXIDEZAP_LIB_REV").unwrap_or("git")
-}
-
 fn description_for(section: SettingsSection) -> Option<&'static str> {
     match section {
         SettingsSection::Appearance => {
-            Some("Presets write to the same theme.json you can edit by hand.")
+            Some("Os presets gravam no mesmo theme.json que você pode editar à mão.")
         }
-        SettingsSection::Privacy => Some("This device's identity, and how to start over."),
-        SettingsSection::Storage => Some("What this client keeps on disk."),
+        SettingsSection::Privacy => Some("A identidade deste dispositivo e como recomeçar."),
+        SettingsSection::Storage => Some("O que este cliente guarda no disco."),
         SettingsSection::Plugins => Some(match crate::platform::plugins::home() {
             crate::platform::PluginHome::Folder => {
-                "Loaded from the plugins folder. Each one says what it may do."
+                "Carregados da pasta de plugins. Cada um diz o que pode fazer."
             }
             crate::platform::PluginHome::Page => {
-                "Kept in this browser. Each one says what it may do."
+                "Guardados neste navegador. Cada um diz o que pode fazer."
             }
             crate::platform::PluginHome::AnotherTab => {
-                "Kept in this browser, and loaded by the tab holding this account."
+                "Guardados neste navegador e carregados pela aba que segura esta conta."
             }
         }),
         _ => None,

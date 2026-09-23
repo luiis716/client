@@ -132,7 +132,7 @@ impl KsniTray for Item {
         // host showed stale can at worst do nothing, never the opposite.
         let window = if self.hub.windows_attached() {
             StandardItem {
-                label: "Hide".into(),
+                label: "Ocultar".into(),
                 // A request, like Open: the daemon owns no window, and the
                 // front end decides what going away means for it. See
                 // `crate::window::hide`.
@@ -143,7 +143,7 @@ impl KsniTray for Item {
             }
         } else {
             StandardItem {
-                label: "Open".into(),
+                label: "Abrir".into(),
                 // The daemon has no window, so this is a request passed
                 // through to whoever has one — and a front end started for it
                 // when nobody is attached, which is the state the tray is
@@ -158,7 +158,7 @@ impl KsniTray for Item {
             window.into(),
             MenuItem::Separator,
             StandardItem {
-                label: "Quit".into(),
+                label: "Sair".into(),
                 // The daemon owns shutdown, so the menu asks rather than
                 // exits: tearing the process down from a D-Bus callback would
                 // skip the session teardown.
@@ -253,7 +253,7 @@ mod tests {
 
         assert_eq!(offline.icon_name(), "user-offline");
         assert_eq!(offline.status(), Status::Active);
-        assert_eq!(offline.tool_tip().description, "Disconnected");
+        assert_eq!(offline.tool_tip().description, "Desconectado");
         assert_eq!(offline.tool_tip().title, "oxidezap");
     }
 
@@ -264,8 +264,8 @@ mod tests {
     fn the_tooltip_carries_the_count() {
         assert_eq!(item(true, 0).tool_tip().title, "oxidezap");
         assert_eq!(item(true, 1).tool_tip().title, "oxidezap (1)");
-        assert_eq!(item(true, 1).tool_tip().description, "1 unread message");
-        assert_eq!(item(true, 4).tool_tip().description, "4 unread messages");
+        assert_eq!(item(true, 1).tool_tip().description, "1 mensagem não lida");
+        assert_eq!(item(true, 4).tool_tip().description, "4 mensagens não lidas");
         assert_eq!(
             item(true, 4).tool_tip().icon_name,
             item(true, 4).icon_name(),

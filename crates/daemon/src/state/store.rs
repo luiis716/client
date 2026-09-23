@@ -55,10 +55,10 @@ impl TrayState {
     #[must_use]
     pub fn description(&self) -> String {
         match (self.connected, self.shown_unread()) {
-            (false, _) => "Disconnected".to_string(),
-            (true, 0) => "Connected".to_string(),
-            (true, 1) => "1 unread message".to_string(),
-            (true, n) => format!("{n} unread messages"),
+            (false, _) => "Desconectado".to_string(),
+            (true, 0) => "Conectado".to_string(),
+            (true, 1) => "1 mensagem não lida".to_string(),
+            (true, n) => format!("{n} mensagens não lidas"),
         }
     }
 
@@ -699,25 +699,25 @@ mod tests {
     fn a_disconnected_tray_shows_no_count() {
         assert_eq!(tray(false, 3).shown_unread(), 0);
         assert_eq!(tray(false, 3).title(), "oxidezap");
-        assert_eq!(tray(false, 3).description(), "Disconnected");
+        assert_eq!(tray(false, 3).description(), "Desconectado");
     }
 
     #[test]
     fn the_tray_names_its_count() {
         assert_eq!(tray(true, 0).title(), "oxidezap");
-        assert_eq!(tray(true, 0).description(), "Connected");
+        assert_eq!(tray(true, 0).description(), "Conectado");
         assert_eq!(tray(true, 1).title(), "oxidezap (1)");
-        assert_eq!(tray(true, 1).description(), "1 unread message");
+        assert_eq!(tray(true, 1).description(), "1 mensagem não lida");
         assert_eq!(tray(true, 4).title(), "oxidezap (4)");
-        assert_eq!(tray(true, 4).description(), "4 unread messages");
+        assert_eq!(tray(true, 4).description(), "4 mensagens não lidas");
     }
 
     #[test]
     fn the_single_line_is_the_two_above_joined() {
-        assert_eq!(tray(false, 3).single_line(), "oxidezap — Disconnected");
+        assert_eq!(tray(false, 3).single_line(), "oxidezap — Desconectado");
         assert_eq!(
             tray(true, 4).single_line(),
-            "oxidezap (4) — 4 unread messages"
+            "oxidezap (4) — 4 mensagens não lidas"
         );
     }
 }

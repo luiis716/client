@@ -61,10 +61,10 @@ impl Home {
             // the file goes to whichever process holds the folder, and that
             // process is the one that starts it.
             Self::Folder | Self::Page => {
-                "Add a .wasm file below. It starts as soon as it is added."
+                "Adicione um arquivo .wasm abaixo. Ele inicia assim que for adicionado."
             }
             Self::AnotherTab => {
-                "Add a .wasm file below. It starts in the tab holding this account."
+                "Adicione um arquivo .wasm abaixo. Ele inicia na aba que segura esta conta."
             }
         }
     }

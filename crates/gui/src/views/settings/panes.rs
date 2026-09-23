@@ -180,14 +180,14 @@ fn removal(
                 .flex_shrink_0()
                 .text_size(metrics.text_meta())
                 .text_color(cx.theme().muted_foreground)
-                .child("Removed")
+                .child("Removido")
                 .into_any_element(),
         );
     }
     let id = id.to_owned();
     Some(
         Button::new(gpui::SharedString::from(format!("remove-plugin-{id}")))
-            .label("Remove")
+            .label("Remover")
             .ghost()
             .small()
             .cursor_pointer()
@@ -242,11 +242,11 @@ fn plugin_controls(
                 .min_w_0()
                 .text_size(metrics.text_meta())
                 .text_color(cx.theme().muted_foreground)
-                .child("Reloading stops every plugin and starts what is in the folder now."),
+                .child("Recarregar interrompe todos os plugins e inicia o que está na pasta agora."),
         )
         .child(
             Button::new("reload-plugins")
-                .label("Reload plugins")
+                .label("Recarregar plugins")
                 .ghost()
                 .cursor_pointer()
                 .on_click(move |_, _window, cx| {
@@ -255,7 +255,7 @@ fn plugin_controls(
         )
         .child(
             Button::new("install-plugin")
-                .label("Add a plugin…")
+                .label("Adicionar plugin…")
                 .outline()
                 .cursor_pointer()
                 .on_click(move |_, _window, cx| {
@@ -374,7 +374,7 @@ fn account(app: &WhatsAppApp, metrics: Metrics, cx: &App) -> AnyElement {
     let account = app.account_summary();
 
     let mut lines = vec![(
-        "Name".to_string(),
+        "Nome".to_string(),
         account
             .as_ref()
             .map(|a| a.name.clone())
@@ -382,7 +382,7 @@ fn account(app: &WhatsAppApp, metrics: Metrics, cx: &App) -> AnyElement {
     )];
     if let Some(jid) = app.account_jid() {
         lines.push((
-            "Number".to_string(),
+            "Número".to_string(),
             // The user part alone: the server suffix is noise to a reader
             // checking which account this is.
             jid.split('@').next().unwrap_or(jid).to_string(),
@@ -393,11 +393,11 @@ fn account(app: &WhatsAppApp, metrics: Metrics, cx: &App) -> AnyElement {
         account
             .as_ref()
             .map(|a| a.status.clone())
-            .unwrap_or_else(|| "not linked".to_string()),
+            .unwrap_or_else(|| "não vinculado".to_string()),
     ));
 
     group(
-        label("LINKED DEVICE", metrics, cx),
+        label("DISPOSITIVO VINCULADO", metrics, cx),
         card(lines, metrics, cx),
         metrics,
     )
@@ -406,12 +406,13 @@ fn account(app: &WhatsAppApp, metrics: Metrics, cx: &App) -> AnyElement {
 
 fn notifications(metrics: Metrics, cx: &App) -> AnyElement {
     group(
-        label("NOTIFICATIONS", metrics, cx),
+        label("NOTIFICAÇÕES", metrics, cx),
         pending(
-            "When system permissions allow, eligible incoming messages may raise desktop \
-             notifications while this window is running. Muted, archived, policy-blocked, \
-             self-sent, and currently visible messages are suppressed; an explicit group \
-             mention may still alert. Clicking a notification opens that conversation.",
+            "Quando o sistema permitir, mensagens elegíveis podem gerar notificações \
+             da área de trabalho enquanto esta janela estiver aberta. Conversas \
+             silenciadas, arquivadas, bloqueadas por política, enviadas por você e \
+             a conversa visível no momento são omitidas; uma menção explícita em \
+             grupo ainda pode alertar. Clicar na notificação abre a conversa.",
             metrics,
             cx,
         ),
@@ -426,21 +427,20 @@ fn audio_video(metrics: Metrics, cx: &App) -> AnyElement {
         .flex_col()
         .gap(metrics.space_xxl())
         .child(group(
-            label("DEVICES", metrics, cx),
+            label("DISPOSITIVOS", metrics, cx),
             pending(
-                "Calls use the system's default input and output. Choosing a \
-                 device needs enumeration the audio layer does not expose yet.",
+                "As chamadas usam a entrada e a saída padrão do sistema. Escolher um \
+                 dispositivo exige enumeração que a camada de áudio ainda não expõe.",
                 metrics,
                 cx,
             ),
             metrics,
         ))
         .child(group(
-            label("VIDEO", metrics, cx),
+            label("VÍDEO", metrics, cx),
             pending(
-                "The VoIP facade is audio-only and 1:1. The call card already \
-                 has the layouts for video and for groups; the controls turn on \
-                 when the library does.",
+                "A fachada VoIP é só áudio e 1:1. O cartão de chamada já tem os layouts \
+                 para vídeo e para grupos; os controles ligam quando a biblioteca ligar.",
                 metrics,
                 cx,
             ),
@@ -455,7 +455,7 @@ fn privacy(entity: Entity<WhatsAppApp>, metrics: Metrics, cx: &App) -> AnyElemen
         .flex_col()
         .gap(metrics.space_xxl())
         .child(group(
-            label("ENCRYPTION", metrics, cx),
+            label("CRIPTOGRAFIA", metrics, cx),
             div()
                 .w_full()
                 .flex()
@@ -479,14 +479,14 @@ fn privacy(entity: Entity<WhatsAppApp>, metrics: Metrics, cx: &App) -> AnyElemen
                         .text_size(metrics.text_small())
                         .text_color(cx.theme().muted_foreground)
                         .child(
-                            "Messages are end-to-end encrypted. Keys live in this \
-                             device's store and never leave it.",
+                            "As mensagens são criptografadas de ponta a ponta. As chaves \
+                             ficam no armazenamento deste dispositivo e nunca saem dele.",
                         ),
                 ),
             metrics,
         ))
         .child(group(
-            label("START OVER", metrics, cx),
+            label("RECOMEÇAR", metrics, cx),
             div()
                 .flex()
                 .flex_col()
@@ -498,9 +498,9 @@ fn privacy(entity: Entity<WhatsAppApp>, metrics: Metrics, cx: &App) -> AnyElemen
                         // Named before it is offered: this is the one action
                         // here that cannot be undone.
                         .child(
-                            "Unlinking clears this device's local data — messages, \
-                             contacts, keys and downloaded media — and starts a new link \
-                             from the QR code.",
+                            "Desvincular apaga os dados locais deste dispositivo — mensagens, \
+                             contatos, chaves e mídia baixada — e inicia um novo vínculo \
+                             pelo código QR.",
                         ),
                 )
                 .child(
@@ -514,7 +514,7 @@ fn privacy(entity: Entity<WhatsAppApp>, metrics: Metrics, cx: &App) -> AnyElemen
                         // surfaces drawn in one frame would share it, for the
                         // one action in the app that erases the account.
                         Button::new("settings-pair-again")
-                            .label("Clear data and pair again")
+                            .label("Apagar dados e parear de novo")
                             .danger()
                             .outline()
                             .cursor_pointer()
@@ -542,7 +542,7 @@ fn storage(
         .flex_col()
         .gap(metrics.space_xxl())
         .child(group(
-            label("ON DISK", metrics, cx),
+            label("NO DISCO", metrics, cx),
             card(
                 vec![
                     (
@@ -550,20 +550,20 @@ fn storage(
                         // database file, and SQLite cannot report one account's
                         // share of it. Said as the file it is rather than as
                         // this account's private usage.
-                        "Message store (shared)".to_string(),
+                        "Armazenamento de mensagens (compartilhado)".to_string(),
                         // Until the first answer arrives. The daemon measures,
                         // and it is another process: there is a frame or two
                         // where the honest thing to show is that nobody has
                         // counted yet.
                         usage.map_or_else(
-                            || "measuring…".to_string(),
+                            || "medindo…".to_string(),
                             |u| format_bytes(u.database_bytes),
                         ),
                     ),
                     (
-                        "Downloaded media".to_string(),
+                        "Mídia baixada".to_string(),
                         usage.map_or_else(
-                            || "measuring…".to_string(),
+                            || "medindo…".to_string(),
                             |u| {
                                 format!(
                                     "{} · {}",
@@ -580,7 +580,7 @@ fn storage(
             metrics,
         ))
         .child(group(
-            label("MEDIA CACHE", metrics, cx),
+            label("CACHE DE MÍDIA", metrics, cx),
             div()
                 .flex()
                 .flex_col()
@@ -593,14 +593,14 @@ fn storage(
                         // than a dare: the history is untouched and every
                         // message keeps the means to fetch its media again.
                         .child(
-                            "Clearing the cache keeps every message. Anything you \
-                             open again is downloaded again.",
+                            "Limpar o cache mantém todas as mensagens. Tudo que você \
+                             abrir de novo será baixado de novo.",
                         ),
                 )
                 .child(
                     div().flex().child(
                         Button::new("clear-media-cache")
-                            .label("Clear cached media")
+                            .label("Limpar mídia em cache")
                             .outline()
                             .disabled(!can_clear_media)
                             .when(can_clear_media, |button| button.cursor_pointer())
@@ -638,9 +638,9 @@ fn format_bytes(bytes: u64) -> String {
 
 fn files(count: u64) -> String {
     if count == 1 {
-        "1 file".to_string()
+        "1 arquivo".to_string()
     } else {
-        format!("{count} files")
+        format!("{count} arquivos")
     }
 }
 
@@ -661,7 +661,7 @@ fn advanced(entity: Entity<WhatsAppApp>, metrics: Metrics, cx: &App) -> AnyEleme
     let kept = oxidezap_logging::location();
 
     group(
-        label("DIAGNOSTICS", metrics, cx),
+        label("DIAGNÓSTICOS", metrics, cx),
         div()
             .flex()
             .flex_col()
@@ -699,12 +699,14 @@ fn advanced(entity: Entity<WhatsAppApp>, metrics: Metrics, cx: &App) -> AnyEleme
             )
             .child(card(
                 vec![
-                    ("Log level".to_string(), active.label().to_string()),
+                    ("Nível de log".to_string(), active.label().to_string()),
                     (
-                        "Kept in".to_string(),
-                        kept.unwrap_or_else(|| "nowhere — it lasts for this run".to_string()),
+                        "Guardado em".to_string(),
+                        kept.unwrap_or_else(|| {
+                            "em lugar nenhum — vale só para esta execução".to_string()
+                        }),
                     ),
-                    ("Renderer".to_string(), "GPUI".to_string()),
+                    ("Renderizador".to_string(), "GPUI".to_string()),
                 ],
                 metrics,
                 cx,
@@ -715,8 +717,8 @@ fn advanced(entity: Entity<WhatsAppApp>, metrics: Metrics, cx: &App) -> AnyEleme
                         .text_size(metrics.text_meta())
                         .text_color(cx.theme().muted_foreground)
                         .child(format!(
-                            "{} asked for {forced} when this started; the level above is \
-                             what is in force now.",
+                            "{} pediu {forced} ao iniciar; o nível acima é \
+                             o que está em vigor agora.",
                             oxidezap_logging::forced_by(),
                         )),
                 )

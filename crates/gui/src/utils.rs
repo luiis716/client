@@ -76,7 +76,7 @@ pub fn format_list_time(timestamp: &DateTime<Utc>) -> String {
 
     match (today - date).num_days() {
         0 => local.format("%H:%M").to_string(),
-        1 => "Yesterday".to_string(),
+        1 => "Ontem".to_string(),
         // Inside the last week a weekday is both shorter and easier to place
         // than a date.
         2..=6 => local.format("%a").to_string(),
@@ -95,9 +95,9 @@ pub fn format_status_time(timestamp: &DateTime<Utc>) -> String {
     let today = wacore::time::now_utc().with_timezone(&Local).date_naive();
 
     match (today - local.date_naive()).num_days() {
-        0 => local.format("Today at %H:%M").to_string(),
-        1 => local.format("Yesterday at %H:%M").to_string(),
-        _ => local.format("%d/%m/%Y at %H:%M").to_string(),
+        0 => local.format("Hoje às %H:%M").to_string(),
+        1 => local.format("Ontem às %H:%M").to_string(),
+        _ => local.format("%d/%m/%Y às %H:%M").to_string(),
     }
 }
 
@@ -107,8 +107,8 @@ pub fn format_date_divider(timestamp: &DateTime<Utc>) -> String {
     let today = wacore::time::now_utc().with_timezone(&Local).date_naive();
 
     match (today - local.date_naive()).num_days() {
-        0 => "TODAY".to_string(),
-        1 => "YESTERDAY".to_string(),
+        0 => "HOJE".to_string(),
+        1 => "ONTEM".to_string(),
         2..=6 => local.format("%A").to_string().to_uppercase(),
         _ => local.format("%d %b %Y").to_string().to_uppercase(),
     }

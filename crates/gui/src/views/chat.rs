@@ -72,7 +72,7 @@ pub fn render_connected_view(
     // fullscreen viewer covers whatever is underneath it — a picture at the
     // size of the window is a mode, so the timeline behind it is no more
     // visible than a chat on another screen.
-    let visible = (app.destination() == Destination::Chats
+    let visible = (app.destination().shows_chats()
         && layout.show_chat_area()
         && !app.paste_preview_showing()
         && app.media_viewer(cx).is_none())
@@ -91,6 +91,7 @@ pub fn render_connected_view(
         cache: app.get_chat_list_cache(cx),
         selected_jid: selected_jid.clone(),
         filter: app.chat_filter(),
+        destination: app.destination(),
         unread_count: app.unread_chat_count(),
         is_searching: app.is_searching(cx),
         search_input: chat_search_input.as_ref(),
@@ -149,7 +150,7 @@ pub fn render_connected_view(
             .flatten();
         let frame = app.video_current_frame(&message.id);
         let author = if message.is_from_me {
-            SharedString::from("You")
+            SharedString::from("Você")
         } else {
             SharedString::from(app.author_label(open_chat.as_deref(), &message))
         };
@@ -224,7 +225,9 @@ pub fn render_connected_view(
         scroll: app.status_list_scroll().clone(),
     });
     let unseen_status = app.status_unseen();
-    let unread_chats = app.unread_chat_count();
+    let unread_chats = app.unread_direct_count();
+    let unread_groups = app.unread_group_count();
+    let unread_channels = app.unread_channel_count();
     // Read-only: the user stopped waiting for a connection. The composer is
     // replaced rather than disabled in place, because the interesting part is
     // the way out, not the field.
@@ -240,8 +243,8 @@ pub fn render_connected_view(
     // that made it, the offline strip takes its place, and on a phone the
     // list and the conversation are one slot. See `sync_overlay_focus`.
     app.note_keyboard_surfaces(crate::app::KeyboardSurfaces {
-        chat_list: destination == Destination::Chats && layout.show_sidebar(),
-        composer: destination == Destination::Chats
+        chat_list: destination.shows_chats() && layout.show_sidebar(),
+        composer: destination.shows_chats()
             && layout.show_chat_area()
             && open_chat.is_some()
             && !is_offline,
@@ -255,6 +258,8 @@ pub fn render_connected_view(
     let rail = render_nav_rail(
         destination,
         unread_chats,
+        unread_groups,
+        unread_channels,
         unseen_status,
         entity.clone(),
         layout,
@@ -426,10 +431,10 @@ fn render_chat_area(
                 super::centered_view("empty-conversation", metrics.space_xxxl())
                     .surface(cx.theme().background)
                     .child(
-                        EmptyState::new("Pick a conversation")
+                        EmptyState::new("Escolha uma conversa")
                             .icon(ProductIcon::MessageSquare)
                             .description(
-                                "Choose a chat on the left, or search for one by name or message.",
+                                "Escolha um chat à esquerda, ou busque por nome ou mensagem.",
                             )
                             .shortcut(
                                 if cfg!(target_os = "macos") {
@@ -437,9 +442,9 @@ fn render_chat_area(
                                 } else {
                                     "Ctrl K"
                                 },
-                                "Search",
+                                "Buscar",
                             )
-                            .shortcut("↑ ↓", "Move between chats"),
+                            .shortcut("↑ ↓", "Navegar entre conversas"),
                     ),
             ),
             Some(chat) => {
@@ -522,11 +527,11 @@ fn render_offline_strip(
                 .min_w_0()
                 .text_size(metrics.text_small())
                 .text_color(cx.theme().muted_foreground)
-                .child("Offline. You can read this conversation, but not send in it."),
+                .child("Offline. Você pode ler esta conversa, mas não enviar nela."),
         )
         .child(
             Button::new("reconnect")
-                .label("Reconnect")
+                .label("Reconectar")
                 .ghost()
                 .cursor_pointer()
                 .on_click(move |_, _window, cx| {
@@ -535,7 +540,7 @@ fn render_offline_strip(
         )
 }
 
-/// "On call · 04:12 · Return to call", under the header of some other chat.
+/// "Em chamada · 04:12 · Voltar à chamada", under the header of some other chat.
 ///
 /// This is what makes the floating card safe to wander away from: the call is
 /// still findable from wherever the user ends up.
@@ -566,7 +571,7 @@ fn render_return_banner(
                 .min_w_0()
                 .text_size(metrics.text_small())
                 .text_color(cx.theme().foreground)
-                .child(format!("On call with {name}")),
+                .child(format!("Em chamada com {name}")),
         )
         .child(
             div()
@@ -577,7 +582,7 @@ fn render_return_banner(
         )
         .child(
             Button::new("return-to-call")
-                .label("Return to call")
+                .label("Voltar à chamada")
                 .icon(Icon::new(IconName::ArrowRight))
                 .ghost()
                 .cursor_pointer()

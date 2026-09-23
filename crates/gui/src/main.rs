@@ -19,6 +19,7 @@
 mod app;
 mod assets;
 mod components;
+mod l10n;
 mod platform;
 mod responsive;
 mod session;

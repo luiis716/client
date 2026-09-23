@@ -237,7 +237,7 @@ fn author_name(message: &ChatMessage, chat: &Chat) -> String {
         .sender
         .parse::<Jid>()
         .map(|jid| fallback_chat_name(&jid))
-        .unwrap_or_else(|_| "Unknown contact".to_string())
+        .unwrap_or_else(|_| "Contato desconhecido".to_string())
 }
 
 #[cfg(test)]
@@ -371,7 +371,7 @@ mod tests {
 
         // A LID is not a phone number and must not be printed as one.
         let lid = feed_of(vec![update("2", "39492358562039@lid", None, 1, true)]);
-        assert_eq!(lid.authors()[0].name, "Unknown contact");
+        assert_eq!(lid.authors()[0].name, "Contato desconhecido");
     }
 
     #[test]

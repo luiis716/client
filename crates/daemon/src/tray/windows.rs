@@ -98,9 +98,9 @@ fn run(
 /// The menu and the icon, on the thread that will own both.
 fn build(initial: &TrayState) -> Result<TrayIcon, String> {
     let menu = Menu::new();
-    let open = MenuItem::with_id(OPEN_ID, "Open", true, None);
-    let hide = MenuItem::with_id(HIDE_ID, "Hide", true, None);
-    let quit = MenuItem::with_id(QUIT_ID, "Quit", true, None);
+    let open = MenuItem::with_id(OPEN_ID, "Abrir", true, None);
+    let hide = MenuItem::with_id(HIDE_ID, "Ocultar", true, None);
+    let quit = MenuItem::with_id(QUIT_ID, "Sair", true, None);
     // One call each rather than `append_items`, so every item coerces to a
     // menu item on its own: a slice of mixed item types needs a shared type
     // annotation to say the same thing.

@@ -15,7 +15,7 @@ use gpui::{
 use gpui_component::ActiveTheme as _;
 use gpui_component::Icon;
 
-use crate::app::{ChatOpen, ChatRow, Preview, PreviewGlyph, Unread, WhatsAppApp};
+use crate::app::{ChatKind, ChatOpen, ChatRow, Preview, PreviewGlyph, Unread, WhatsAppApp};
 use crate::components::parts;
 use crate::components::{ProductIcon, status_ticks};
 use crate::responsive::ResponsiveLayout;
@@ -85,7 +85,8 @@ pub fn render_chat_item(
         })
         .child(
             Avatar::new(row.jid.clone(), &row.name, layout.avatar_size())
-                .group(row.is_group)
+                .group(row.kind == ChatKind::Group)
+                .channel(row.kind == ChatKind::Channel)
                 .picture(row.avatar_key.clone(), media)
                 .on(ground),
         )
@@ -131,7 +132,7 @@ fn render_name_row(
                 .font_family(cx.theme().mono_font_family.clone())
                 .text_size(metrics.text_meta())
                 .text_color(parts::subtle(cx))
-                .child("Pinned")
+                .child("Fixada")
         }))
         .children(row.timestamp.map(|timestamp| {
             div()
@@ -161,14 +162,18 @@ fn render_preview_row(
         .gap(metrics.space_sm())
         .min_w_0()
         .children(row.kind.label().map(|label| {
+            let accent = match row.kind {
+                ChatKind::Channel => cx.theme().primary,
+                _ => cx.theme().muted_foreground,
+            };
             div()
                 .flex_shrink_0()
                 .rounded(metrics.radius_sm())
-                .bg(cx.theme().secondary)
+                .bg(accent.opacity(0.14))
                 .px(metrics.space_xs())
                 .font_family(cx.theme().mono_font_family.clone())
                 .text_size(metrics.text_micro())
-                .text_color(cx.theme().secondary_foreground)
+                .text_color(accent)
                 .child(label)
         }))
         .child(render_preview(&row.preview, row.is_group, metrics, cx))
@@ -196,7 +201,7 @@ fn render_preview(
         Preview::Empty => line()
             .text_color(parts::subtle(cx))
             .italic()
-            .child("No messages")
+            .child("Sem mensagens")
             .into_any_element(),
 
         // Typing is the one preview that is happening right now, so it takes
@@ -211,7 +216,7 @@ fn render_preview(
                 div()
                     .flex_shrink_0()
                     .text_color(cx.theme().warning)
-                    .child("Draft:"),
+                    .child("Rascunho:"),
             )
             .text_color(cx.theme().muted_foreground)
             .child(text(draft.clone()))

@@ -13,7 +13,7 @@ use gpui::{
     SharedString, Styled, Window, div, img, linear_color_stop, linear_gradient,
 };
 use gpui_component::ActiveTheme as _;
-use gpui_component::{Icon, IconName};
+use gpui_component::Icon;
 
 use crate::session::MediaCache;
 use crate::theme::ActiveProductTheme as _;
@@ -33,6 +33,8 @@ enum Badge {
     Presence(Presence),
     /// This conversation is a group, not a person.
     Group,
+    /// A newsletter / channel.
+    Channel,
 }
 
 /// An initial on a ground derived from an identity.
@@ -80,6 +82,14 @@ impl Avatar {
     pub fn group(mut self, is_group: bool) -> Self {
         if is_group {
             self.badge = Some(Badge::Group);
+        }
+        self
+    }
+
+    /// Mark the avatar as a channel / newsletter.
+    pub fn channel(mut self, is_channel: bool) -> Self {
+        if is_channel {
+            self.badge = Some(Badge::Channel);
         }
         self
     }
@@ -183,9 +193,17 @@ fn render_badge(badge: Badge, size: Pixels, ground: Hsla, cx: &App) -> AnyElemen
         Badge::Group => ringed
             .bg(cx.theme().secondary)
             .child(
-                Icon::new(IconName::User)
-                    .size(size * 0.6)
+                Icon::new(crate::components::ProductIcon::Users)
+                    .size(size * 0.55)
                     .text_color(cx.theme().muted_foreground),
+            )
+            .into_any_element(),
+        Badge::Channel => ringed
+            .bg(cx.theme().primary.opacity(0.2))
+            .child(
+                Icon::new(crate::components::ProductIcon::Volume)
+                    .size(size * 0.55)
+                    .text_color(cx.theme().primary),
             )
             .into_any_element(),
     }

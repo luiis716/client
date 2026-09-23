@@ -325,7 +325,7 @@ fn render_download_placeholder(
                     div()
                         .text_size(metrics.text_small())
                         .text_color(cx.theme().muted_foreground)
-                        .child("Downloading…"),
+                        .child("Baixando…"),
                 )
             } else {
                 el.child(
@@ -611,7 +611,7 @@ fn render_document_placeholder(
                 parts::icon_button(
                     SharedString::from(format!("save-{message_id}")),
                     Icon::new(IconName::ArrowDown).size(metrics.icon_small()),
-                    "Save to Downloads",
+                    "Salvar em Downloads",
                     metrics.icon_button(),
                 )
                 .disabled(is_downloading)

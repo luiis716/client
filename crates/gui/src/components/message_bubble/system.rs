@@ -82,7 +82,7 @@ pub fn render_call_record(
                     .icon(Icon::new(ProductIcon::Phone))
                     .ghost()
                     .small()
-                    .tooltip("Call back")
+                    .tooltip(crate::l10n::tr("Call back"))
                     .cursor_pointer()
                     .on_click(move |_, _window, cx| {
                         entity.update(cx, |app, cx| app.start_call(peer_jid.clone(), false, cx));

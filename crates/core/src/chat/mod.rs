@@ -27,17 +27,17 @@ pub fn fallback_chat_name(jid: &Jid) -> String {
     if jid.is_status_broadcast() {
         "Status".to_string()
     } else if jid.is_group() {
-        "Group name unavailable".to_string()
+        "Grupo sem nome".to_string()
     } else if jid.is_broadcast_list() {
-        "Broadcast list".to_string()
+        "Lista de transmissão".to_string()
     } else if jid.is_newsletter() {
-        "Channel".to_string()
+        "Canal".to_string()
     } else if jid.server.is_lid_family() {
-        "Unknown contact".to_string()
+        "Contato desconhecido".to_string()
     } else if jid.server.is_pn_family() && jid.user_base().chars().all(|c| c.is_ascii_digit()) {
         format!("+{}", jid.user_base())
     } else {
-        "Unknown chat".to_string()
+        "Conversa desconhecida".to_string()
     }
 }
 
@@ -522,7 +522,7 @@ mod tests {
         let pn = Chat::new("12025550143@s.whatsapp.net".to_string());
         let legacy = Chat::new("12025550144@c.us".to_string());
 
-        assert_eq!(lid.name, "Unknown contact");
+        assert_eq!(lid.name, "Contato desconhecido");
         assert_eq!(pn.name, "+12025550143");
         assert_eq!(legacy.name, "+12025550144");
     }

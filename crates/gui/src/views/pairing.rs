@@ -62,13 +62,13 @@ pub fn render_pairing_view(
                         .text_size(metrics.text_title())
                         .font_weight(gpui::FontWeight::SEMIBOLD)
                         .text_color(cx.theme().foreground)
-                        .child("Link your phone"),
+                        .child("Vincular seu celular"),
                 )
                 .child(
                     div()
                         .text_size(metrics.text_secondary())
                         .text_color(cx.theme().muted_foreground)
-                        .child("This device stays linked until you unlink it."),
+                        .child("Este dispositivo permanece vinculado até você desvincular."),
                 ),
         )
         .child(render_steps(metrics, cx))
@@ -78,7 +78,7 @@ pub fn render_pairing_view(
         // the other was left claiming its neighbour's remaining life.
         .child(render_expiry(
             qr_code.map(|qr| qr.life),
-            "code refreshes in",
+            "código atualiza em",
             metrics,
             cx,
         ))
@@ -91,7 +91,7 @@ pub fn render_pairing_view(
                 .child(render_pair_code(code.value, metrics, cx))
                 .child(render_expiry(
                     Some(code.life),
-                    "code expires in",
+                    "código expira em",
                     metrics,
                     cx,
                 ))
@@ -104,9 +104,9 @@ pub fn render_pairing_view(
 /// instruction.
 fn render_steps(metrics: Metrics, cx: &App) -> impl IntoElement + use<> {
     const STEPS: [&str; 3] = [
-        "Open WhatsApp on your phone",
-        "Go to Settings → Linked devices",
-        "Tap Link a device and scan this code",
+        "Abra o WhatsApp no celular",
+        "Vá em Configurações → Aparelhos conectados",
+        "Toque em Conectar um aparelho e escaneie este código",
     ];
     let subtle = parts::subtle(cx);
 
@@ -173,7 +173,7 @@ fn render_qr(
                 // surface, so it is not a theme colour to resolve.
                 .text_color(gpui::black())
                 .text_size(metrics.text_small())
-                .child("Waiting for a code…")
+                .child("Aguardando um código…")
                 .into_any_element(),
         })
 }
@@ -191,7 +191,7 @@ fn render_pair_code(code: String, metrics: Metrics, cx: &App) -> impl IntoElemen
             div()
                 .text_size(metrics.text_small())
                 .text_color(subtle)
-                .child("Or enter this code on your phone"),
+                .child("Ou digite este código no celular"),
         )
         .child(div().flex().gap(metrics.space_md()).children(
             code.chars().filter(|c| !c.is_whitespace()).map(|ch| {
@@ -259,7 +259,7 @@ fn render_expiry(
                 .child(if left > 0 {
                     format!("{verb} {left}s")
                 } else {
-                    "refreshing…".to_string()
+                    "atualizando…".to_string()
                 }),
         )
 }

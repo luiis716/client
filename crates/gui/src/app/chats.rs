@@ -11,38 +11,38 @@ use super::{WhatsAppApp, newest_shared_message};
 use log::info;
 use wacore_binary::jid::observe_str;
 
-/// Which conversations the sidebar is showing.
+/// Which conversations the sidebar is showing within the current destination.
 ///
 /// A filter is part of the information model, not a view detail: the list
 /// being short has to be explainable, so the active filter stays visible and
-/// an empty result offers the way back to `All`.
+/// an empty result offers the way back to `All`. Groups live on their own
+/// destination in the rail, so the chips here are only All / Unread.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum ChatFilter {
     #[default]
     All,
     Unread,
-    Groups,
+    /// Hidden conversations. Groups/channels live on their own rail
+    /// destinations; the chips here are only about read-state and archive.
     Archived,
 }
 
 impl ChatFilter {
-    pub const ALL: [Self; 4] = [Self::All, Self::Unread, Self::Groups, Self::Archived];
+    pub const ALL: [Self; 3] = [Self::All, Self::Unread, Self::Archived];
 
     pub fn id(self) -> &'static str {
         match self {
             Self::All => "all",
             Self::Unread => "unread",
-            Self::Groups => "groups",
             Self::Archived => "archived",
         }
     }
 
     pub fn label(self) -> &'static str {
         match self {
-            Self::All => "All",
-            Self::Unread => "Unread",
-            Self::Groups => "Groups",
-            Self::Archived => "Archived",
+            Self::All => crate::l10n::filter_label("all"),
+            Self::Unread => crate::l10n::filter_label("unread"),
+            Self::Archived => crate::l10n::filter_label("archived"),
         }
     }
 
@@ -51,7 +51,6 @@ impl ChatFilter {
         match self {
             Self::All => !chat.archived,
             Self::Unread => !chat.archived && (chat.unread_count > 0 || chat.manually_unread),
-            Self::Groups => !chat.archived && chat.is_group,
             Self::Archived => chat.archived,
         }
     }
@@ -305,12 +304,6 @@ mod tests {
     }
 
     #[test]
-    fn groups_excludes_direct_chats() {
-        assert!(ChatFilter::Groups.matches(&chat("g@g.us", true, 0, false)));
-        assert!(!ChatFilter::Groups.matches(&chat("a@s.whatsapp.net", false, 9, false)));
-    }
-
-    #[test]
     fn archived_is_a_separate_list_for_direct_chats_and_groups() {
         let mut direct = chat("a@s.whatsapp.net", false, 0, false);
         direct.archived = true;
@@ -321,7 +314,6 @@ mod tests {
         assert!(ChatFilter::Archived.matches(&group));
         assert!(!ChatFilter::All.matches(&direct));
         assert!(!ChatFilter::Unread.matches(&direct));
-        assert!(!ChatFilter::Groups.matches(&group));
     }
 
     fn from_store(jid: &str) -> Chat {
@@ -417,7 +409,7 @@ mod tests {
     #[test]
     fn filter_ids_are_stable_and_distinct() {
         let ids: Vec<&str> = ChatFilter::ALL.iter().map(|f| f.id()).collect();
-        assert_eq!(ids, vec!["all", "unread", "groups", "archived"]);
+        assert_eq!(ids, vec!["all", "unread", "archived"]);
     }
 
     fn tied_chat(jid: &str, pin_secs: Option<i64>, secs: Option<i64>) -> Chat {

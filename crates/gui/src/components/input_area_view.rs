@@ -145,7 +145,7 @@ impl InputAreaView {
             TextareaState::new(window, cx)
                 .auto_grow(COMPOSER_MIN_ROWS, COMPOSER_MAX_ROWS)
                 .submit_on_enter(true)
-                .placeholder("Type a message")
+                .placeholder("Digite uma mensagem")
         });
 
         // Subscribe to input events (for Enter key to send, etc.)
@@ -439,7 +439,7 @@ impl InputAreaView {
                 parts::icon_button(
                     "attach",
                     Icon::new(ProductIcon::Paperclip),
-                    "Attach a photo, a video or a document",
+                    "Anexar foto, vídeo ou documento",
                     control,
                 )
                 .cursor_pointer()
@@ -460,7 +460,7 @@ impl InputAreaView {
                 parts::icon_button(
                     "emoji",
                     Icon::new(ProductIcon::Smile),
-                    "The emoji picker is not available yet",
+                    "O seletor de emoji ainda não está disponível",
                     control,
                 )
                 .disabled(true),
@@ -472,7 +472,7 @@ impl InputAreaView {
                 Button::new("send")
                     .icon(IconName::ArrowRight)
                     .primary()
-                    .tooltip("Send")
+                    .tooltip("Enviar")
                     .w(control)
                     .h(control)
                     .cursor_pointer()
@@ -492,9 +492,9 @@ impl InputAreaView {
                     .ghost()
                     .disabled(!can_record)
                     .tooltip(if can_record {
-                        "Hold to record a voice message"
+                        "Segure para gravar um áudio"
                     } else {
-                        "Voice messages cannot be recorded in this browser"
+                        "Não é possível gravar áudios neste navegador"
                     })
                     .w(control)
                     .h(control)
@@ -529,7 +529,7 @@ impl InputAreaView {
                 parts::icon_button(
                     "cancel-recording",
                     Icon::new(ProductIcon::Trash),
-                    "Discard recording",
+                    "Descartar gravação",
                     control,
                 )
                 .cursor_pointer()
@@ -561,13 +561,13 @@ impl InputAreaView {
                 div()
                     .text_size(metrics.text_small())
                     .text_color(parts::subtle(cx))
-                    .child("Recording"),
+                    .child("Gravando"),
             )
             .child(
                 Button::new("send-recording")
                     .icon(IconName::ArrowRight)
                     .primary()
-                    .tooltip("Send voice message")
+                    .tooltip("Enviar áudio")
                     .w(control)
                     .h(control)
                     .cursor_pointer()
@@ -632,7 +632,7 @@ fn render_reply_bar(
                         .text_size(metrics.text_small())
                         .font_weight(gpui::FontWeight::SEMIBOLD)
                         .text_color(hue)
-                        .child(format!("Replying to {}", reply.sender_name)),
+                        .child(format!("Respondendo a {}", reply.sender_name)),
                 )
                 .child(
                     parts::one_line()
@@ -646,7 +646,7 @@ fn render_reply_bar(
                 .icon(IconName::Close)
                 .ghost()
                 .xsmall()
-                .tooltip("Cancel reply")
+                .tooltip(crate::l10n::tr("Cancel reply"))
                 .cursor_pointer()
                 .on_click(move |_, _window, cx| {
                     entity.update(cx, |view, cx| view.clear_reply(cx));

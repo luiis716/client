@@ -53,7 +53,7 @@ fn render_presets(
     let is_custom = settings.draft.palette != active.palette();
 
     group(
-        label("THEME PRESET", metrics, cx),
+        label("PRESET DO TEMA", metrics, cx),
         div()
             .flex()
             .flex_wrap()
@@ -224,7 +224,7 @@ fn render_custom_card(metrics: Metrics, cx: &App) -> impl IntoElement + use<> {
                         .font_family(cx.theme().mono_font_family.clone())
                         .text_size(metrics.text_micro())
                         .text_color(cx.theme().muted_foreground)
-                        .child("edited by hand"),
+                        .child("editado à mão"),
                 ),
         )
         .child(
@@ -232,7 +232,7 @@ fn render_custom_card(metrics: Metrics, cx: &App) -> impl IntoElement + use<> {
                 .w_full()
                 .text_size(metrics.text_small())
                 .text_color(cx.theme().foreground)
-                .child("Custom"),
+                .child("Personalizado"),
         )
 }
 
@@ -245,7 +245,7 @@ fn render_density(
     let active = settings.draft.density;
 
     group(
-        label("DENSITY", metrics, cx),
+        label("DENSIDADE", metrics, cx),
         div()
             .flex()
             .gap(metrics.space_md())
@@ -293,7 +293,7 @@ fn render_font_size(
             .items_center()
             .justify_between()
             .gap(metrics.space_lg())
-            .child(label("BASE FONT SIZE", metrics, cx))
+            .child(label("TAMANHO BASE DA FONTE", metrics, cx))
             .child(
                 div()
                     .font_family(cx.theme().mono_font_family.clone())
@@ -315,7 +315,7 @@ fn render_font_size(
                             .icon(IconName::Minus)
                             .outline()
                             .small()
-                            .tooltip("Smaller")
+                            .tooltip("Menor")
                             .disabled(size <= MIN_FONT_SIZE)
                             .when(size > MIN_FONT_SIZE, |button| button.cursor_pointer())
                             .on_click(move |_, window, cx| {
@@ -328,7 +328,7 @@ fn render_font_size(
                             .icon(IconName::Plus)
                             .outline()
                             .small()
-                            .tooltip("Larger")
+                            .tooltip("Maior")
                             .disabled(size >= MAX_FONT_SIZE)
                             .when(size < MAX_FONT_SIZE, |button| button.cursor_pointer())
                             .on_click(move |_, window, cx| {
@@ -340,7 +340,7 @@ fn render_font_size(
                 div()
                     .text_size(metrics.text_small())
                     .text_color(cx.theme().muted_foreground)
-                    .child("Spacing, controls and icons scale with this, not just text."),
+                    .child("Espaçamento, controles e ícones acompanham isto, não só o texto."),
             ),
         metrics,
     )
@@ -372,7 +372,7 @@ fn render_theme_file(
 ) -> impl IntoElement + use<> {
     let path = settings
         .config_location()
-        .unwrap_or_else(|| "nowhere to keep a theme on this platform".to_string());
+        .unwrap_or_else(|| "nenhum lugar para guardar um tema nesta plataforma".to_string());
     let problems = settings.draft.problems.clone();
     let is_dirty = settings.is_dirty();
 
@@ -386,7 +386,7 @@ fn render_theme_file(
             .items_center()
             .justify_between()
             .gap(metrics.space_lg())
-            .child(label("THEME FILE", metrics, cx))
+            .child(label("ARQUIVO DO TEMA", metrics, cx))
             .child(
                 div()
                     .flex()
@@ -394,7 +394,7 @@ fn render_theme_file(
                     .when(is_dirty, |el| {
                         el.child(
                             Button::new("theme-revert")
-                                .label("Revert")
+                                .label("Desfazer")
                                 .ghost()
                                 .small()
                                 .cursor_pointer()
@@ -406,10 +406,10 @@ fn render_theme_file(
                     })
                     .child(
                         Button::new("theme-reload")
-                            .label("Reload")
+                            .label("Recarregar")
                             .outline()
                             .small()
-                            .tooltip("Re-read the file from disk")
+                            .tooltip(crate::l10n::tr("Re-read the file from disk"))
                             .cursor_pointer()
                             .on_click(move |_, window, cx| {
                                 reload_entity.update(cx, |app, cx| app.reload_theme(window, cx));
@@ -417,7 +417,7 @@ fn render_theme_file(
                     )
                     .child(
                         Button::new("theme-save")
-                            .label("Save")
+                            .label("Salvar")
                             .primary()
                             .small()
                             .disabled(!is_dirty)
@@ -487,8 +487,8 @@ fn render_theme_file(
                                 .child(
                                     // The point of the fallback: nothing broke,
                                     // some keys were simply not applied.
-                                    "Some of the file could not be applied. \
-                                     The rest of the theme is unchanged.",
+                                    "Parte do arquivo não pôde ser aplicada. \
+                                     O restante do tema permanece inalterado.",
                                 ),
                         )
                         .children(problems.into_iter().map(|problem| {

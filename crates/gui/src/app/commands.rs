@@ -173,7 +173,7 @@ impl WhatsAppApp {
                 use gpui_component::input::InputEvent;
 
                 let input = cx.new(|cx| {
-                    InputState::new(window, cx).placeholder("Search in this conversation")
+                    InputState::new(window, cx).placeholder("Buscar nesta conversa")
                 });
                 cx.subscribe(&input, |this, input, event: &InputEvent, cx| match event {
                     InputEvent::Change => {

@@ -75,11 +75,11 @@ impl MessageStatus {
     /// never carried by tick colour alone.
     pub fn label(self) -> &'static str {
         match self {
-            Self::Pending => "Sending",
-            Self::Sent => "Sent",
-            Self::Delivered => "Delivered",
-            Self::Read => "Read",
-            Self::Failed => "Not sent",
+            Self::Pending => "Enviando",
+            Self::Sent => "Enviada",
+            Self::Delivered => "Entregue",
+            Self::Read => "Lida",
+            Self::Failed => "Não enviada",
         }
     }
 }

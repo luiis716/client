@@ -41,6 +41,7 @@ const AVATAR_CONCURRENCY: usize = 8;
 /// partial response into one `Ok(None)`, and only a positive answer may change
 /// what a chat shows. `NotFound` is the one destructive state, and it is now
 /// told apart from the rest.
+#[derive(Debug)]
 enum Lookup {
     /// A picture with a fetchable source.
     Found { picture_id: String, source: String },
@@ -78,13 +79,17 @@ impl Lookup {
     fn of(outcome: whatsapp_rust::features::ProfilePictureLookup) -> Self {
         use whatsapp_rust::features::ProfilePictureLookup as Outcome;
         match outcome {
-            Outcome::Found(picture) if !picture.url.is_empty() => Self::Found {
-                picture_id: picture.id,
-                source: picture.url,
+            Outcome::Found(picture) => match fetchable_source(&picture.url, picture.direct_path.as_deref())
+            {
+                Some(source) if !picture.id.is_empty() => Self::Found {
+                    picture_id: picture.id,
+                    source,
+                },
+                // An id with no fetchable source: the metadata moved but there
+                // is nothing to download, so this session keeps what it had.
+                _ => Self::Unchanged,
             },
-            // An id with no URL: the metadata moved but there is nothing to
-            // fetch, so this session keeps what it had.
-            Outcome::Found(_) | Outcome::Unchanged => Self::Unchanged,
+            Outcome::Unchanged => Self::Unchanged,
             Outcome::NotFound => Self::NotFound,
             Outcome::RateOverlimit => Self::RateOverlimit,
             Outcome::NotAuthorized => Self::NotAuthorized,
@@ -213,10 +218,46 @@ fn lookup_is_useless(jid: &Jid) -> bool {
     jid.is_status_broadcast() || jid.is_broadcast_list() || jid.is_psa()
 }
 
+/// Turn a profile-picture answer into a URL the daemon can `GET`.
+///
+/// WhatsApp usually hands back a signed `https://pps.whatsapp.net/…` URL.
+/// Channels (and some group answers) instead leave `url` empty and put only a
+/// `direct_path` like `/v/t61…` — the same host serves those when the path is
+/// joined to it. A path that is already absolute is left alone.
+fn fetchable_source(url: &str, direct_path: Option<&str>) -> Option<String> {
+    if !url.is_empty() {
+        return Some(url.to_string());
+    }
+    let path = direct_path?.trim();
+    if path.is_empty() {
+        return None;
+    }
+    if path.starts_with("https://") || path.starts_with("http://") {
+        return Some(path.to_string());
+    }
+    if path.starts_with('/') {
+        Some(format!("https://pps.whatsapp.net{path}"))
+    } else {
+        Some(format!("https://pps.whatsapp.net/{path}"))
+    }
+}
+
+/// A picture id for a channel whose metadata only names a direct_path.
+///
+/// The path changes when the picture does, so it is a stable-enough cache key
+/// without a second MEX field the library does not yet expose.
+fn newsletter_picture_id(path: &str) -> String {
+    let path = path.split('?').next().unwrap_or(path);
+    path.to_string()
+}
+
 /// Fetch one chat's picture metadata.
 ///
 /// The group branch carries the community fallback; see [`Lookup::or_community`]
-/// for why only a `Found` is taken from it.
+/// for why only a `Found` is taken from it. Newsletters try the generic
+/// profile-picture IQ first, then newsletter metadata: channels often answer
+/// the IQ without a signed URL, while `list`/`get_metadata` still carry a
+/// `direct_path` under `picture` / `preview`.
 ///
 /// When `need_bytes` is true, `existing_id` is passed as `None` to avoid the
 /// "unchanged trap": an `Unchanged` response carries no download URL, so if
@@ -258,6 +299,8 @@ async fn lookup(
             // not-authorized stands, and it was not destructive.
             Err(_) => asked,
         }
+    } else if jid.is_newsletter() {
+        lookup_newsletter(client, jid, known_id, need_bytes).await
     } else {
         match client
             .contacts()
@@ -273,6 +316,73 @@ async fn lookup(
                 );
                 Lookup::Failed
             }
+        }
+    }
+}
+
+/// A channel's picture: generic IQ first, then newsletter metadata.
+///
+/// The IQ is what ordinary contacts use and what the library documents for
+/// newsletters; metadata is the path WhatsApp Web fills the channel list from,
+/// and it is the only place that still names a `direct_path` when the IQ
+/// answers with an empty signed URL (or refuses).
+async fn lookup_newsletter(
+    client: &Arc<Client>,
+    jid: &Jid,
+    known_id: Option<&str>,
+    need_bytes: bool,
+) -> Lookup {
+    let existing_id = if need_bytes { None } else { known_id };
+    // Full picture, not the preview thumbnail: channel avatars in the list
+    // are small, but a preview path is often a few dozen pixels and looks
+    // crushed once drawn.
+    let asked = match client
+        .contacts()
+        .lookup_profile_picture(jid, false, existing_id)
+        .await
+    {
+        Ok(outcome) => Lookup::of(outcome),
+        Err(error) => {
+            debug!(
+                "avatar metadata lookup failed for {}: {error}",
+                jid.observe()
+            );
+            Lookup::Failed
+        }
+    };
+    // A positive IQ answer, or an "unchanged" against a known id, is enough.
+    // Everything else — including NotFound — still asks metadata: channels
+    // routinely expose the picture there and not on w:profile:picture.
+    if matches!(asked, Lookup::Found { .. } | Lookup::Unchanged) {
+        return asked;
+    }
+    match client.newsletter().get_metadata(jid).await {
+        Ok(meta) => {
+            let Some(path) = meta
+                .picture_url
+                .or(meta.preview_url)
+                .filter(|p| !p.is_empty())
+            else {
+                return asked;
+            };
+            let Some(source) = fetchable_source("", Some(&path)) else {
+                return asked;
+            };
+            let picture_id = newsletter_picture_id(&path);
+            if !need_bytes && known_id == Some(picture_id.as_str()) {
+                return Lookup::Unchanged;
+            }
+            Lookup::Found {
+                picture_id,
+                source,
+            }
+        }
+        Err(error) => {
+            debug!(
+                "newsletter avatar metadata lookup failed for {}: {error}",
+                jid.observe()
+            );
+            asked
         }
     }
 }
@@ -487,7 +597,8 @@ mod tests {
 
     /// A channel is not the accidental `!is_group` branch. Its JID is a
     /// newsletter, the generic profile-picture spec answers it, and the only
-    /// thing this side decides is that it is worth asking.
+    /// thing this side decides is that it is worth asking — with a metadata
+    /// fallback when the IQ leaves the signed URL empty.
     #[test]
     fn a_channel_is_worth_asking_about() {
         let newsletter: Jid = "120363000000000001@newsletter".parse().unwrap();
@@ -497,6 +608,64 @@ mod tests {
         assert!(!lookup_is_useless(&group));
         assert!(!lookup_is_useless(&direct));
         assert!(newsletter.is_newsletter());
+    }
+
+    #[test]
+    fn a_signed_url_is_preferred_over_a_direct_path() {
+        assert_eq!(
+            fetchable_source(
+                "https://pps.whatsapp.net/v/signed",
+                Some("/v/t61/path")
+            )
+            .as_deref(),
+            Some("https://pps.whatsapp.net/v/signed")
+        );
+    }
+
+    /// Channels often answer with only a direct_path; that has to become a
+    /// fetchable pps URL or the daemon has nothing to download.
+    #[test]
+    fn a_bare_direct_path_becomes_a_pps_url() {
+        assert_eq!(
+            fetchable_source("", Some("/v/t61.0-24/pic.enc")).as_deref(),
+            Some("https://pps.whatsapp.net/v/t61.0-24/pic.enc")
+        );
+        assert_eq!(
+            fetchable_source("", Some("v/t61.0-24/pic.enc")).as_deref(),
+            Some("https://pps.whatsapp.net/v/t61.0-24/pic.enc")
+        );
+        assert_eq!(
+            fetchable_source("", Some("https://cdn.example/pic")).as_deref(),
+            Some("https://cdn.example/pic")
+        );
+        assert_eq!(fetchable_source("", None), None);
+        assert_eq!(fetchable_source("", Some("")), None);
+    }
+
+    #[test]
+    fn found_with_only_a_direct_path_is_still_a_picture() {
+        use whatsapp_rust::features::{ProfilePicture, ProfilePictureLookup};
+        let outcome = ProfilePictureLookup::Found(ProfilePicture {
+            id: "1700000000".into(),
+            url: String::new(),
+            direct_path: Some("/v/t61.0-24/pic.enc".into()),
+            hash: None,
+        });
+        match Lookup::of(outcome) {
+            Lookup::Found { picture_id, source } => {
+                assert_eq!(picture_id, "1700000000");
+                assert_eq!(source, "https://pps.whatsapp.net/v/t61.0-24/pic.enc");
+            }
+            other => panic!("expected Found, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn newsletter_picture_id_strips_a_query_string() {
+        assert_eq!(
+            newsletter_picture_id("/v/t61.0-24/pic.enc?oh=abc"),
+            "/v/t61.0-24/pic.enc"
+        );
     }
 
     /// The dedup is what keeps a repeated page from repeating its traffic.

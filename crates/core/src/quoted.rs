@@ -55,11 +55,11 @@ impl QuotedKind {
 
     pub fn label(self) -> &'static str {
         match self {
-            Self::Image => "Photo",
-            Self::Video => "Video",
-            Self::Audio => "Voice message",
-            Self::Document => "Document",
-            Self::Sticker => "Sticker",
+            Self::Image => "Foto",
+            Self::Video => "Vídeo",
+            Self::Audio => "Áudio",
+            Self::Document => "Documento",
+            Self::Sticker => "Figurinha",
         }
     }
 }
@@ -103,10 +103,10 @@ mod tests {
 
     #[test]
     fn media_without_a_caption_names_its_kind() {
-        assert_eq!(quoted("", Some(QuotedKind::Image)).summary(), "Photo");
+        assert_eq!(quoted("", Some(QuotedKind::Image)).summary(), "Foto");
         assert_eq!(
             quoted("", Some(QuotedKind::Audio)).summary(),
-            "Voice message"
+            "Áudio"
         );
     }
 

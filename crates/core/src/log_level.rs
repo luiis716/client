@@ -61,9 +61,9 @@ impl LogLevel {
     #[must_use]
     pub const fn label(self) -> &'static str {
         match self {
-            Self::Off => "Off",
-            Self::Error => "Error",
-            Self::Warn => "Warn",
+            Self::Off => "Desligado",
+            Self::Error => "Erro",
+            Self::Warn => "Aviso",
             Self::Info => "Info",
             Self::Debug => "Debug",
             Self::Trace => "Trace",
@@ -75,12 +75,12 @@ impl LogLevel {
     #[must_use]
     pub const fn note(self) -> &'static str {
         match self {
-            Self::Off => "Nothing is logged at all.",
-            Self::Error => "Only failures.",
-            Self::Warn => "Failures and anything suspicious.",
-            Self::Info => "The default: connections, sends, and what went wrong.",
-            Self::Debug => "Every stanza the library reads, and every step of a pairing.",
-            Self::Trace => "Everything, including the protocol's own bookkeeping.",
+            Self::Off => "Nada é registrado.",
+            Self::Error => "Só falhas.",
+            Self::Warn => "Falhas e qualquer coisa suspeita.",
+            Self::Info => "O padrão: conexões, envios e o que deu errado.",
+            Self::Debug => "Cada stanza que a biblioteca lê e cada passo do pareamento.",
+            Self::Trace => "Tudo, inclusive a contabilidade interna do protocolo.",
         }
     }
 

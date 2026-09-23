@@ -36,13 +36,13 @@ pub fn render_logged_out_view(
             // is the one screen that keeps hold of the block: what pairing
             // again costs belongs with the sentence explaining why it is the
             // only way forward, not beside the button that does it.
-            parts::screen_message("Session ended", message.to_string(), cx).child(
+            parts::screen_message("Sessão encerrada", message.to_string(), cx).child(
                 div()
                     .text_size(metrics.text_small())
                     .text_color(parts::subtle(cx))
                     .child(
-                        "Pairing again clears this device's local data — messages, \
-                         contacts and keys — and starts a new link from the QR code.",
+                        "Parear de novo apaga os dados locais deste dispositivo — mensagens, \
+                         contatos e chaves — e inicia um novo vínculo pelo código QR.",
                     ),
             ),
         )
@@ -51,7 +51,7 @@ pub fn render_logged_out_view(
                 // Outline, not filled: this is irreversible, and a filled
                 // primary would make it the obvious thing to click.
                 Button::new("logged-out-pair-again")
-                    .label("Clear data and pair again")
+                    .label("Apagar dados e parear de novo")
                     .danger()
                     .outline()
                     .cursor_pointer()

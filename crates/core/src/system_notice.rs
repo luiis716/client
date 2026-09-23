@@ -37,15 +37,21 @@ impl CallRecord {
     /// The line describing what happened.
     pub fn title(&self) -> String {
         let kind = if self.is_video {
-            "Video call"
+            "Chamada de vídeo"
         } else {
-            "Voice call"
+            "Chamada de voz"
         };
         match self.outcome {
             // "Missed" is only true of a call that rang at us; one we placed
             // and nobody answered is not the reader's fault to be told about.
-            CallOutcome::Missed if !self.is_outgoing => format!("Missed {}", kind.to_lowercase()),
-            CallOutcome::Missed => format!("{kind}, no answer"),
+            CallOutcome::Missed if !self.is_outgoing => {
+                if self.is_video {
+                    "Chamada de vídeo perdida".to_string()
+                } else {
+                    "Chamada de voz perdida".to_string()
+                }
+            }
+            CallOutcome::Missed => format!("{kind}, sem resposta"),
             _ => kind.to_string(),
         }
     }
@@ -66,16 +72,16 @@ impl CallRecord {
     /// The second line: how long, or how to try again.
     pub fn detail(&self) -> String {
         let direction = if self.is_outgoing {
-            "outgoing"
+            "saída"
         } else {
-            "incoming"
+            "entrada"
         };
         match self.outcome {
             CallOutcome::Completed(secs) => {
                 format!("{direction} · {}", format_duration(secs))
             }
-            CallOutcome::Missed => "tap to call back".to_string(),
-            CallOutcome::Declined => format!("{direction} · declined"),
+            CallOutcome::Missed => "toque para retornar".to_string(),
+            CallOutcome::Declined => format!("{direction} · recusada"),
         }
     }
 
@@ -147,21 +153,21 @@ mod tests {
     #[test]
     fn a_completed_call_reports_its_length_and_direction() {
         let call = record(false, CallOutcome::Completed(252));
-        assert_eq!(call.title(), "Voice call");
-        assert_eq!(call.detail(), "incoming · 4:12");
+        assert_eq!(call.title(), "Chamada de voz");
+        assert_eq!(call.detail(), "entrada · 4:12");
         assert!(!call.is_missed());
     }
 
     #[test]
     fn only_a_call_that_rang_at_us_counts_as_missed() {
         let inbound = record(false, CallOutcome::Missed);
-        assert_eq!(inbound.title(), "Missed voice call");
-        assert_eq!(inbound.detail(), "tap to call back");
+        assert_eq!(inbound.title(), "Chamada de voz perdida");
+        assert_eq!(inbound.detail(), "toque para retornar");
         assert!(inbound.is_missed());
 
         // One we placed and nobody answered is not the reader's failure.
         let outbound = record(true, CallOutcome::Missed);
-        assert_eq!(outbound.title(), "Voice call, no answer");
+        assert_eq!(outbound.title(), "Chamada de voz, sem resposta");
         assert!(!outbound.is_missed());
     }
 
@@ -171,14 +177,14 @@ mod tests {
             is_video: true,
             ..record(false, CallOutcome::Missed)
         };
-        assert_eq!(call.title(), "Missed video call");
+        assert_eq!(call.title(), "Chamada de vídeo perdida");
     }
 
     #[test]
     fn a_declined_call_says_which_way_it_went() {
         assert_eq!(
             record(true, CallOutcome::Declined).detail(),
-            "outgoing · declined"
+            "saída · recusada"
         );
     }
 }

@@ -59,7 +59,7 @@ fn members_line(roster: &GroupRoster) -> Option<String> {
         .members
         .iter()
         .filter(|member| member.is_self)
-        .map(|_| "You")
+        .map(|_| "Você")
         .chain(
             roster
                 .members
@@ -70,21 +70,30 @@ fn members_line(roster: &GroupRoster) -> Option<String> {
         .collect();
 
     if named.is_empty() {
-        return Some(count_of("member", total));
+        return Some(count_of_members(total));
     }
     let line = named.join(", ");
     match total - named.len() {
         0 => Some(line),
-        rest => Some(format!("{line} and {}", count_of("other", rest))),
+        rest => Some(format!("{line} e {}", count_of_others(rest))),
     }
 }
 
-/// `n` of something, pluralised.
-fn count_of(thing: &str, n: usize) -> String {
+/// `n` membros.
+fn count_of_members(n: usize) -> String {
     if n == 1 {
-        format!("{n} {thing}")
+        "1 membro".to_string()
     } else {
-        format!("{n} {thing}s")
+        format!("{n} membros")
+    }
+}
+
+/// `n` outros.
+fn count_of_others(n: usize) -> String {
+    if n == 1 {
+        "1 outro".to_string()
+    } else {
+        format!("{n} outros")
     }
 }
 
@@ -116,7 +125,7 @@ fn subtitle(
     match availability {
         Some(Availability::Online) => Some(("online".to_string(), false)),
         Some(Availability::LastSeen(at)) => Some((
-            format!("last seen {}", crate::utils::format_list_time(at)),
+            format!("visto por último {}", crate::utils::format_list_time(at)),
             false,
         )),
         Some(Availability::Unknown) | None => None,
@@ -228,7 +237,7 @@ fn render_identity(
                 Button::new("back")
                     .icon(IconName::ArrowLeft)
                     .ghost()
-                    .tooltip("Back to chats")
+                    .tooltip(crate::l10n::tr("Back to chats"))
                     .cursor_pointer()
                     .on_click(move |_, _window, cx| {
                         back_entity.update(cx, |app, cx| app.navigate_back(cx));
@@ -238,6 +247,7 @@ fn render_identity(
         .child(
             Avatar::new(chat.jid.clone(), &chat.name, metrics.avatar_header())
                 .group(chat.is_group)
+                .channel(chat.jid.ends_with("@newsletter"))
                 .picture(chat.avatar_cache_key.clone(), media)
                 .presence(presence)
                 .on(cx.theme().sidebar),
@@ -322,7 +332,7 @@ fn render_actions(
                 action(
                     "search-in-chat",
                     Icon::new(IconName::Search),
-                    "Search in conversation",
+                    "Buscar na conversa",
                 )
                 .cursor_pointer()
                 .on_click(move |_, window, cx| {
@@ -332,7 +342,7 @@ fn render_actions(
         })
         .when(callable && layout.show_call_buttons(), |el| {
             el.child(
-                action("voice-call", ProductIcon::Phone.into(), "Voice call")
+                action("voice-call", ProductIcon::Phone.into(), crate::l10n::tr("Voice call"))
                     .cursor_pointer()
                     .on_click(move |_, _window, cx| {
                         call_entity
@@ -340,7 +350,7 @@ fn render_actions(
                     }),
             )
             .child(
-                action("video-call", ProductIcon::Video.into(), "Video call")
+                action("video-call", ProductIcon::Video.into(), crate::l10n::tr("Video call"))
                     .cursor_pointer()
                     .on_click(move |_, _window, cx| {
                         video_entity
@@ -387,7 +397,7 @@ fn render_overflow_menu(
         let jid = jid.clone();
 
         let menu = menu.item(
-            PopupMenuItem::new("Search in conversation")
+            PopupMenuItem::new("Buscar na conversa")
                 .icon(IconName::Search)
                 .on_click(move |_, window, cx| {
                     search_entity.update(cx, |app, cx| app.toggle_conversation_search(window, cx));
@@ -399,14 +409,14 @@ fn render_overflow_menu(
         }
         menu.separator()
             .item(
-                PopupMenuItem::new("Voice call")
+                PopupMenuItem::new("Chamada de voz")
                     .icon(Icon::from(ProductIcon::Phone))
                     .on_click(move |_, _window, cx| {
                         call_entity.update(cx, |app, cx| app.start_call(jid.clone(), false, cx));
                     }),
             )
             .item(
-                PopupMenuItem::new("Video call")
+                PopupMenuItem::new("Chamada de vídeo")
                     .icon(Icon::from(ProductIcon::Video))
                     .on_click(move |_, _window, cx| {
                         video_entity
@@ -481,12 +491,12 @@ mod tests {
         let members = roster(&["Ana", "Bruno"], 0, true);
         let (text, is_typing) =
             subtitle(&group_with(4), Some(&summary), None, Some(&members)).unwrap();
-        assert_eq!(text, "Ana typing…");
+        assert_eq!(text, "Ana digitando…");
         assert!(is_typing);
 
         let (text, is_typing) =
             subtitle(&direct(), Some(&summary), Some(&Availability::Online), None).unwrap();
-        assert_eq!(text, "typing…", "a direct chat needs no name");
+        assert_eq!(text, "digitando…", "a direct chat needs no name");
         assert!(is_typing);
     }
 
@@ -503,7 +513,7 @@ mod tests {
     fn a_group_names_its_members_once_the_roster_arrives() {
         let members = roster(&["Ana", "Bruno"], 0, true);
         let (text, is_typing) = subtitle(&group_with(1), None, None, Some(&members)).unwrap();
-        assert_eq!(text, "You, Ana, Bruno");
+        assert_eq!(text, "Você, Ana, Bruno");
         assert!(!is_typing, "a roster is not somebody typing");
     }
 
@@ -515,7 +525,7 @@ mod tests {
         let members = roster(&named, 40, true);
         assert_eq!(
             members_line(&members).unwrap(),
-            "You, Ana, Bruno, Carla, Davi, Elena and 42 others"
+            "Você, Ana, Bruno, Carla, Davi, Elena e 42 outros"
         );
     }
 
@@ -524,11 +534,11 @@ mod tests {
     /// `participants` could never give.
     #[test]
     fn a_group_of_strangers_is_counted_rather_than_listed() {
-        assert_eq!(members_line(&roster(&[], 50, false)).unwrap(), "50 members");
-        assert_eq!(members_line(&roster(&[], 1, false)).unwrap(), "1 member");
+        assert_eq!(members_line(&roster(&[], 50, false)).unwrap(), "50 membros");
+        assert_eq!(members_line(&roster(&[], 1, false)).unwrap(), "1 membro");
         assert_eq!(
             members_line(&roster(&["Ana"], 1, false)).unwrap(),
-            "Ana and 1 other"
+            "Ana e 1 outro"
         );
     }
 
@@ -556,7 +566,7 @@ mod tests {
             subtitle(&group_with(4), Some(&summary), None, None)
                 .unwrap()
                 .0,
-            "Ana typing…"
+            "Ana digitando…"
         );
     }
 

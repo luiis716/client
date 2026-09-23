@@ -97,9 +97,9 @@ impl MacTray {
 /// The menu and the icon, on the thread that will own both.
 fn build(initial: &TrayState) -> Result<TrayIcon, String> {
     let menu = Menu::new();
-    let open = MenuItem::with_id(OPEN_ID, "Open", true, None);
-    let hide = MenuItem::with_id(HIDE_ID, "Hide", true, None);
-    let quit = MenuItem::with_id(QUIT_ID, "Quit", true, None);
+    let open = MenuItem::with_id(OPEN_ID, "Abrir", true, None);
+    let hide = MenuItem::with_id(HIDE_ID, "Ocultar", true, None);
+    let quit = MenuItem::with_id(QUIT_ID, "Sair", true, None);
     menu.append(&open)
         .and_then(|_| menu.append(&hide))
         .and_then(|_| menu.append(&PredefinedMenuItem::separator()))

@@ -119,7 +119,7 @@ fn render_play_button(
         .w(metrics.avatar_inline())
         .h(metrics.avatar_inline())
         .disabled(!can_play)
-        .tooltip(if is_playing { "Pause" } else { "Play" })
+        .tooltip(if is_playing { crate::l10n::tr("Pause") } else { crate::l10n::tr("Play") })
         .when(can_play, |button| button.cursor_pointer())
         .on_click(move |_, _window, cx| {
             let message_id = message_id.clone();
@@ -247,7 +247,7 @@ fn render_speed_chip(
     } else {
         cx.theme().primary
     })
-    .tooltip("Playback speed")
+    .tooltip(crate::l10n::tr("Playback speed"))
     .cursor_pointer()
     .on_click(move |_, _window, cx| {
         entity.update(cx, |app, cx| app.cycle_playback_speed(cx));

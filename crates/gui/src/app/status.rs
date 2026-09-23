@@ -19,16 +19,20 @@ use super::WhatsAppApp;
 pub enum Destination {
     #[default]
     Chats,
+    Groups,
+    Channels,
     Status,
 }
 
 impl Destination {
-    pub const ALL: [Self; 2] = [Self::Chats, Self::Status];
+    pub const ALL: [Self; 4] = [Self::Chats, Self::Groups, Self::Channels, Self::Status];
 
     pub fn label(self) -> &'static str {
         match self {
-            Self::Chats => "Chats",
-            Self::Status => "Status",
+            Self::Chats => crate::l10n::destination_label("chats"),
+            Self::Groups => crate::l10n::destination_label("groups"),
+            Self::Channels => crate::l10n::destination_label("channels"),
+            Self::Status => crate::l10n::destination_label("status"),
         }
     }
 
@@ -36,8 +40,15 @@ impl Destination {
     pub fn id(self) -> &'static str {
         match self {
             Self::Chats => "nav-chats",
+            Self::Groups => "nav-groups",
+            Self::Channels => "nav-channels",
             Self::Status => "nav-status",
         }
+    }
+
+    /// Whether this destination shows the conversation list (not Status).
+    pub fn shows_chats(self) -> bool {
+        matches!(self, Self::Chats | Self::Groups | Self::Channels)
     }
 }
 
@@ -162,6 +173,22 @@ impl WhatsAppApp {
             self.leave_shown_status();
         }
         self.destination = destination;
+        // Chats and Groups share one list cache keyed by the filter walk; moving
+        // between them changes which rows belong without a separate announce.
+        if destination.shows_chats() {
+            self.invalidate_chat_cache();
+            // A contact left open under Grupos (or a group under Conversas) would
+            // draw a conversation that is not in the list beside it.
+            if let Some(jid) = self.selected_chat.clone() {
+                let belongs = self.find_chat(&jid).is_some_and(|chat| {
+                    crate::app::chat_row::ChatKind::of(chat).destination() == destination
+                });
+                if !belongs {
+                    self.selected_chat = None;
+                    self.mobile_panel = crate::responsive::MobilePanel::ChatList;
+                }
+            }
+        }
         cx.notify();
     }
 

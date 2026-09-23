@@ -1,4 +1,4 @@
-//! The All / Unread / Groups filter row.
+//! The All / Unread / Archived filter row.
 
 use gpui::{App, Entity, IntoElement, ParentElement, SharedString, Styled, div, prelude::*};
 use gpui_component::ActiveTheme as _;
@@ -10,9 +10,11 @@ use crate::theme::Metrics;
 
 /// The filter chips above the list.
 ///
-/// Chips rather than a `Select`: there are three, they are mutually
+/// Chips rather than a `Select`: there are a few, they are mutually
 /// exclusive, and which one is active has to stay visible while the list is
 /// being read — a collapsed control would hide the reason the list is short.
+/// Groups and channels live on the rail, so the chips here are only about
+/// read-state and archive.
 pub fn render_filters(
     active: ChatFilter,
     unread_count: usize,

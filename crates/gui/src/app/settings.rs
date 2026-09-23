@@ -46,14 +46,14 @@ impl SettingsSection {
 
     pub fn label(self) -> &'static str {
         match self {
-            Self::Account => "Account",
-            Self::Appearance => "Appearance",
-            Self::Notifications => "Notifications",
-            Self::AudioVideo => "Audio & video",
-            Self::Privacy => "Privacy & keys",
-            Self::Storage => "Storage & media",
+            Self::Account => "Conta",
+            Self::Appearance => "Aparência",
+            Self::Notifications => "Notificações",
+            Self::AudioVideo => "Áudio e vídeo",
+            Self::Privacy => "Privacidade e chaves",
+            Self::Storage => "Armazenamento e mídia",
             Self::Plugins => "Plugins",
-            Self::Advanced => "Advanced",
+            Self::Advanced => "Avançado",
         }
     }
 
@@ -536,7 +536,7 @@ impl WhatsAppApp {
                 log::warn!("the log level was changed but not stored: {e}");
                 let _ = entity.update(cx, |app, cx| {
                     app.notify_user(
-                        "Logging at that level now, but the choice will not survive a restart.",
+                        "O nível de log já está ativo, mas a escolha não sobrevive a um reinício.",
                         Tone::Problem,
                         cx,
                     );

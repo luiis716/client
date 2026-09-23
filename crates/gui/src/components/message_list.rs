@@ -82,9 +82,9 @@ pub fn render_message_list(
             .items_center()
             .p(metrics.space_xxxl())
             .child(
-                EmptyState::new("No messages yet")
+                EmptyState::new("Ainda sem mensagens")
                     .icon(ProductIcon::MessageSquare)
-                    .description("Say something to start this conversation."),
+                    .description("Diga algo para começar esta conversa."),
             )
             .into_any_element();
     }

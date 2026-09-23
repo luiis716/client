@@ -290,7 +290,7 @@ fn unsaved_row(
                 .min_w_0()
                 .text_size(metrics.text_small())
                 .text_color(cx.theme().warning)
-                .child("Not saved yet. Press Enter, or click Save."),
+                .child("Ainda não salvo. Pressione Enter ou clique em Salvar."),
         )
         .child(
             // Its own namespace, and the slot in it. A widget id may hold
@@ -301,7 +301,7 @@ fn unsaved_row(
             Button::new(SharedString::from(format!(
                 "plugin-save/{plugin}/{slot:?}/{id}"
             )))
-            .label("Save")
+            .label("Salvar")
             .primary()
             .small()
             .cursor_pointer()
@@ -340,9 +340,9 @@ pub enum Standing {
 impl Standing {
     const fn word(self) -> &'static str {
         match self {
-            Self::Running => "Running",
-            Self::Stopped => "Stopped",
-            Self::NotLoaded => "Not loaded",
+            Self::Running => "Em execução",
+            Self::Stopped => "Parado",
+            Self::NotLoaded => "Não carregado",
         }
     }
 }
@@ -513,11 +513,11 @@ pub fn settings_entry(
     // has not been allowed is running and refused — it watches, and every
     // gated command it issues comes back denied.
     let permissions = if surface.gated.is_empty() {
-        "Watches only. It cannot act on your account.".to_string()
+        "Só observa. Não pode agir na sua conta.".to_string()
     } else if surface.approved {
-        format!("Allowed to: {}", surface.gated.join(", "))
+        format!("Permitido: {}", surface.gated.join(", "))
     } else {
-        format!("Wants to: {}", surface.gated.join(", "))
+        format!("Quer: {}", surface.gated.join(", "))
     };
     // What it does only to itself, said plainly and never as a question. It
     // holds these by declaring them, so offering a switch over them would be
@@ -529,7 +529,7 @@ pub fn settings_entry(
         .filter(|c| !surface.gated.contains(c))
         .map(String::as_str)
         .collect();
-    let own = (!own.is_empty()).then(|| format!("Also: {}", own.join(", ")));
+    let own = (!own.is_empty()).then(|| format!("Também: {}", own.join(", ")));
 
     let mut body: Vec<gpui::AnyElement> = Vec::new();
     body.push(
@@ -574,7 +574,7 @@ pub fn settings_entry(
         let approved = surface.approved;
         body.push(
             row_with_label(
-                "Let it act on your account",
+                "Permitir que aja na sua conta",
                 Switch::new(SharedString::from(format!("plugin-allow-{}", surface.id)))
                     .checked(approved)
                     .cursor_pointer()

@@ -57,8 +57,8 @@ pub fn render_error_view(
                         .label(match retry_in {
                             // A countdown answers "is it stuck?" without the
                             // user having to guess.
-                            Some(secs) if secs > 0 => format!("Retry in {secs}s"),
-                            _ => "Retry now".to_string(),
+                            Some(secs) if secs > 0 => format!("Tentar de novo em {secs}s"),
+                            _ => "Tentar de novo".to_string(),
                         })
                         .primary()
                         .cursor_pointer()
@@ -70,7 +70,7 @@ pub fn render_error_view(
                     // The app is usable offline — history is local. Saying so
                     // is what stops this screen from being a dead end.
                     Button::new("work-offline")
-                        .label("Work offline")
+                        .label("Usar offline")
                         .outline()
                         .cursor_pointer()
                         .on_click({
@@ -124,9 +124,9 @@ fn render_detail(
                     .size(metrics.icon_small()),
                 )
                 .child(if is_open {
-                    "Hide technical detail"
+                    "Ocultar detalhe técnico"
                 } else {
-                    "Technical detail"
+                    "Detalhe técnico"
                 })
                 .cursor_pointer()
                 .on_click(move |_, _window, cx| {
@@ -182,13 +182,13 @@ pub fn render_refused_view(
         // the whole reason it travels as a sentence rather than a code — so
         // the headline above it says only where the reason applies.
         .child(parts::screen_message(
-            "This window won't open the account",
+            "Esta janela não abre a conta",
             detail.clone(),
             cx,
         ))
         .child(
             Button::new("retry")
-                .label("Try again")
+                .label("Tentar de novo")
                 .primary()
                 .cursor_pointer()
                 .on_click(move |_, _, cx| {

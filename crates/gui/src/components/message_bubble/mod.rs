@@ -355,7 +355,7 @@ pub fn render_message_bubble(
                     el.child(
                         div().mt(metrics.space_xs()).child(
                             Button::new(ids.retry.clone())
-                                .label("Not sent · retry")
+                                .label("Não enviada · tentar de novo")
                                 .ghost()
                                 .danger()
                                 .xsmall()
@@ -422,7 +422,7 @@ pub fn render_message_bubble(
                 );
             }
             let menu = menu.menu(
-                "Reply",
+                "Responder",
                 Box::new(ReplyToMessage {
                     id: menu_id.clone().into(),
                 }),
@@ -431,7 +431,7 @@ pub fn render_message_bubble(
                 menu
             } else {
                 menu.menu(
-                    "Copy text",
+                    "Copiar texto",
                     Box::new(CopyMessage {
                         text: menu_text.clone().into(),
                     }),
@@ -443,7 +443,7 @@ pub fn render_message_bubble(
             let mut menu = menu;
             for target in menu_links.iter() {
                 menu = menu.menu(
-                    format!("Open {target}"),
+                    format!("Abrir {target}"),
                     Box::new(OpenMessageLink {
                         url: target.clone(),
                     }),
@@ -451,7 +451,7 @@ pub fn render_message_bubble(
             }
             if menu_failed {
                 menu.separator().menu(
-                    "Send again",
+                    "Enviar de novo",
                     Box::new(RetryMessage {
                         id: menu_id.clone().into(),
                     }),

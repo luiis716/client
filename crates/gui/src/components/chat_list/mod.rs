@@ -32,6 +32,7 @@ pub struct ChatListProps<'a> {
     pub cache: ChatListCache,
     pub selected_jid: Option<String>,
     pub filter: ChatFilter,
+    pub destination: crate::app::Destination,
     pub unread_count: usize,
     /// Whether a search is narrowing the list, which changes what an empty
     /// list means.
@@ -111,7 +112,7 @@ pub fn render_chat_list(
         .when(!layout.is_mobile(), |el| {
             el.border_r_1().border_color(cx.theme().border)
         })
-        .child(render_title_bar(entity.clone(), metrics, cx))
+        .child(render_title_bar(props.destination, entity.clone(), metrics, cx))
         .children(
             props
                 .search_input
@@ -141,6 +142,7 @@ pub fn render_chat_list(
 }
 
 fn render_title_bar(
+    destination: crate::app::Destination,
     entity: Entity<WhatsAppApp>,
     metrics: Metrics,
     cx: &App,
@@ -160,7 +162,7 @@ fn render_title_bar(
                 .text_size(metrics.text_title())
                 .font_weight(gpui::FontWeight::SEMIBOLD)
                 .text_color(cx.theme().foreground)
-                .child("Chats"),
+                .child(destination.label()),
         )
         .child(
             div()
@@ -174,14 +176,14 @@ fn render_title_bar(
                         .ghost()
                         .small()
                         .disabled(true)
-                        .tooltip("Starting a new conversation is not available yet"),
+                        .tooltip("Iniciar uma nova conversa ainda não está disponível"),
                 )
                 .child(
                     Button::new("open-settings")
                         .icon(IconName::Settings)
                         .ghost()
                         .small()
-                        .tooltip("Settings")
+                        .tooltip(crate::l10n::tr("Settings"))
                         .cursor_pointer()
                         .on_click(move |_, window, cx| {
                             settings_entity.update(cx, |app, cx| app.open_settings(window, cx));
@@ -315,28 +317,35 @@ fn render_empty(
     let reset_entity = entity;
 
     let empty = if props.is_searching {
-        EmptyState::new("No matches")
+        EmptyState::new("Nenhum resultado")
             .icon(IconName::Search)
-            .description("No conversation or message matches your search.")
-            .action("Clear search", move |window, cx| {
+            .description("Nenhuma conversa ou mensagem corresponde à sua busca.")
+            .action("Limpar busca", move |window, cx| {
                 clear_entity.update(cx, |app, cx| app.clear_search(window, cx));
             })
     } else if props.filter != ChatFilter::All {
         EmptyState::new(match props.filter {
-            ChatFilter::Unread => "Nothing unread",
-            ChatFilter::Groups => "No groups",
-            ChatFilter::Archived => "No archived chats",
-            ChatFilter::All => "No chats",
+            ChatFilter::Unread => "Nada não lido",
+            ChatFilter::Archived => "Nada arquivado",
+            ChatFilter::All => "Ainda sem conversas",
         })
         .icon(IconName::Inbox)
-        .description("Nothing here under the current filter.")
-        .action("Show all chats", move |_window, cx| {
+        .description("Nada aqui com o filtro atual.")
+        .action("Mostrar todas", move |_window, cx| {
             reset_entity.update(cx, |app, cx| app.set_chat_filter(ChatFilter::All, cx));
         })
-    } else {
-        EmptyState::new("No chats yet")
+    } else if props.destination == crate::app::Destination::Groups {
+        EmptyState::new("Ainda sem grupos")
             .icon(IconName::Inbox)
-            .description("Conversations appear here once your phone finishes syncing.")
+            .description("Grupos e comunidades aparecem aqui quando o celular terminar de sincronizar.")
+    } else if props.destination == crate::app::Destination::Channels {
+        EmptyState::new("Ainda sem canais")
+            .icon(IconName::Inbox)
+            .description("Os canais (newsletters) que você seguir aparecem aqui.")
+    } else {
+        EmptyState::new("Ainda sem conversas")
+            .icon(IconName::Inbox)
+            .description("As conversas aparecem aqui quando o celular terminar de sincronizar.")
     };
 
     div()

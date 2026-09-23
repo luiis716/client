@@ -36,8 +36,8 @@ impl ComposingKind {
     /// The verb for a single participant.
     pub fn verb(self) -> &'static str {
         match self {
-            Self::Text => "typing",
-            Self::Audio => "recording audio",
+            Self::Text => "digitando",
+            Self::Audio => "gravando áudio",
         }
     }
 }
@@ -168,8 +168,8 @@ impl TypingSummary {
         self.names().collect::<Vec<_>>().join(", ")
     }
 
-    /// The sentence shown beside the avatars in a group: `Ana is typing`,
-    /// `Ana, Marcos +2 are typing`.
+    /// The sentence shown beside the avatars in a group: `Ana está digitando`,
+    /// `Ana, Marcos +2 estão digitando`.
     ///
     /// A 1:1 chat does not use this — there is only one person it could be, so
     /// the bubble alone says it.
@@ -179,9 +179,9 @@ impl TypingSummary {
             names.push_str(&format!(" +{}", self.overflow()));
         }
         let verb = if self.total == 1 {
-            format!("is {}", self.kind.verb())
+            format!("está {}", self.kind.verb())
         } else {
-            format!("are {}", self.kind.verb())
+            format!("estão {}", self.kind.verb())
         };
         format!("{names} {verb}")
     }
@@ -328,7 +328,7 @@ mod tests {
     fn one_typist_is_named_in_the_singular() {
         let registry = registry_with(&[("a@s.whatsapp.net", "Ana")]);
         let summary = registry.typing(CHAT).expect("someone is typing");
-        assert_eq!(summary.label(), "Ana is typing");
+        assert_eq!(summary.label(), "Ana está digitando");
         assert_eq!(summary.total, 1);
         assert_eq!(summary.overflow(), 0);
     }
@@ -342,7 +342,7 @@ mod tests {
             ("r@s.whatsapp.net", "Rui"),
         ]);
         let summary = registry.typing(CHAT).unwrap();
-        assert_eq!(summary.label(), "Ana, Marcos +2 are typing");
+        assert_eq!(summary.label(), "Ana, Marcos +2 estão digitando");
         assert_eq!(summary.overflow(), 2);
     }
 
@@ -368,16 +368,16 @@ mod tests {
             ComposingKind::Audio,
         );
         let summary = registry.typing(CHAT).unwrap();
-        assert_eq!(summary.label(), "Ana is recording audio");
-        assert_eq!(summary.compact_label(false), "recording audio…");
+        assert_eq!(summary.label(), "Ana está gravando áudio");
+        assert_eq!(summary.compact_label(false), "gravando áudio…");
     }
 
     #[test]
     fn a_direct_chat_does_not_repeat_the_only_possible_name() {
         let registry = registry_with(&[("a@s.whatsapp.net", "Ana")]);
         let summary = registry.typing(CHAT).unwrap();
-        assert_eq!(summary.compact_label(false), "typing…");
-        assert_eq!(summary.compact_label(true), "Ana typing…");
+        assert_eq!(summary.compact_label(false), "digitando…");
+        assert_eq!(summary.compact_label(true), "Ana digitando…");
     }
 
     #[test]

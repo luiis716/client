@@ -115,8 +115,8 @@ impl Fault {
     /// The one nothing diagnosed: the socket went, and it may come back.
     pub fn unreachable(detail: impl Into<String>) -> Self {
         Self {
-            headline: "Can't reach WhatsApp",
-            body: "Your messages are safe on this device. We'll keep trying to reconnect.",
+            headline: "Não foi possível alcançar o WhatsApp",
+            body: "Suas mensagens estão seguras neste dispositivo. Continuaremos tentando reconectar.",
             detail: detail.into(),
             recovery: Recovery::AfterAWait,
         }
@@ -125,8 +125,8 @@ impl Fault {
     /// This window fell behind the daemon's stream.
     pub fn fell_behind(detail: impl Into<String>) -> Self {
         Self {
-            headline: "Reconnecting to the background service",
-            body: "This window fell behind and is attaching again. Nothing has been lost.",
+            headline: "Reconectando ao serviço em segundo plano",
+            body: "Esta janela ficou para trás e está se anexando de novo. Nada foi perdido.",
             detail: detail.into(),
             recovery: Recovery::Now,
         }
@@ -140,9 +140,9 @@ impl Fault {
     /// one. What is left is reading what is already here.
     pub fn oversized(detail: impl Into<String>) -> Self {
         Self {
-            headline: "This window cannot read what the background service sent",
-            body: "One frame was larger than this window will accept, and attaching again \
-                   would meet the same one. Your messages are safe on this device.",
+            headline: "Esta janela não consegue ler o que o serviço enviou",
+            body: "Um frame foi maior do que esta janela aceita, e anexar de novo \
+                   encontraria o mesmo. Suas mensagens estão seguras neste dispositivo.",
             detail: detail.into(),
             recovery: Recovery::Nothing,
         }
@@ -151,9 +151,9 @@ impl Fault {
     /// The window and the daemon are different builds.
     pub fn mismatched(detail: impl Into<String>) -> Self {
         Self {
-            headline: "This window and the background service disagree",
-            body: "They are different versions. Quit oxidezap completely and start it \
-                   again; reconnecting will not help.",
+            headline: "Esta janela e o serviço em segundo plano discordam",
+            body: "São versões diferentes. Feche o oxidezap por completo e inicie \
+                   de novo; reconectar não ajuda.",
             detail: detail.into(),
             recovery: Recovery::Nothing,
         }
